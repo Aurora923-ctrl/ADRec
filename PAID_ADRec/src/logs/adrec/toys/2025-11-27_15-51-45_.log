@@ -1,0 +1,243 @@
+2025-11-27 15:51:45,090 - logger - INFO - _
+2025-11-27 15:51:45,091 - logger - INFO - Arguments:
+dataset: toys
+log_file: logs/
+random_seed: 2025
+device: cuda:0
+max_len: 50
+hidden_size: 128
+dropout: 0.1
+emb_dropout: 0.3
+hidden_act: gelu
+dif_blocks: 2
+dif_decoder: att
+is_causal: True
+model: adrec
+use_rope: False
+use_position_aware: True
+position_importance_mode: position_based
+use_error_guided_importance: True
+importance_supervision_weight: 0.035
+scheduler_temperature: 2.8
+importance_entropy_weight: 0.005
+last_importance_weight: 0.002
+batch_size: 512
+epochs: 500
+optimizer: Adam
+lr: 0.001
+weight_decay: 1e-05
+momentum: None
+decay_step: 100
+gamma: 0.1
+loss: mse
+loss_scale: 1.0
+pcgrad: True
+pref_loss_scale: 1.0
+schedule_sampler_name: uniform
+diffusion_steps: 32
+noise_schedule: trunc_lin
+beta_a: 0.3
+beta_b: 10
+dif_objective: pred_x0
+diffusion_loss_type: cosine
+parallel_ag: True
+rescale_timesteps: True
+lambda_uncertainty: 0.01
+cfg_scale: 1
+geodesic: False
+independent: True
+metric_ks: [5, 10, 20]
+eval_interval: 5
+epoch_wo_val: 0
+patience: 4
+diversity_measure: False
+epoch_time_avg: False
+split_onebyone: False
+pretrained: True
+freeze_emb: True
+description: _
+item_num: 7309
+2025-11-27 15:51:52,005 - logger - INFO - loss in epoch 0: ce_loss 7.730, dif_loss 0.986, pref_loss 0.612
+2025-11-27 15:51:58,935 - logger - INFO - loss in epoch 1: ce_loss 6.945, dif_loss 0.935, pref_loss 0.575
+2025-11-27 15:52:05,880 - logger - INFO - loss in epoch 2: ce_loss 6.889, dif_loss 0.905, pref_loss 0.566
+2025-11-27 15:52:12,801 - logger - INFO - loss in epoch 3: ce_loss 7.070, dif_loss 0.880, pref_loss 0.568
+2025-11-27 15:52:19,729 - logger - INFO - loss in epoch 4: ce_loss 7.328, dif_loss 0.847, pref_loss 0.572
+2025-11-27 15:52:19,729 - logger - INFO - warm up finishied in epoch 5
+2025-11-27 15:52:26,890 - logger - INFO - loss in epoch 5: ce_loss 7.447, dif_loss 0.798, pref_loss 0.568
+2025-11-27 15:52:44,419 - logger - INFO - {'Best_HR@5': np.float64(5.5452), 'Best_NDCG@5': np.float64(3.3003), 'Best_HR@10': np.float64(7.4134), 'Best_NDCG@10': np.float64(3.9076), 'Best_HR@20': np.float64(10.2836), 'Best_NDCG@20': np.float64(4.6296)}
+2025-11-27 15:52:44,419 - logger - INFO - {'Best_epoch_HR@5': 5, 'Best_epoch_NDCG@5': 5, 'Best_epoch_HR@10': 5, 'Best_epoch_NDCG@10': 5, 'Best_epoch_HR@20': 5, 'Best_epoch_NDCG@20': 5}
+2025-11-27 15:52:51,621 - logger - INFO - loss in epoch 6: ce_loss 6.978, dif_loss 0.742, pref_loss 0.537
+2025-11-27 15:52:58,443 - logger - INFO - loss in epoch 7: ce_loss 6.781, dif_loss 0.696, pref_loss 0.523
+2025-11-27 15:53:05,122 - logger - INFO - loss in epoch 8: ce_loss 6.593, dif_loss 0.646, pref_loss 0.513
+2025-11-27 15:53:11,811 - logger - INFO - loss in epoch 9: ce_loss 6.435, dif_loss 0.592, pref_loss 0.506
+2025-11-27 15:53:18,496 - logger - INFO - loss in epoch 10: ce_loss 6.417, dif_loss 0.537, pref_loss 0.502
+2025-11-27 15:53:35,068 - logger - INFO - {'Best_HR@5': np.float64(7.9059), 'Best_NDCG@5': np.float64(5.1308), 'Best_HR@10': np.float64(10.946), 'Best_NDCG@10': np.float64(6.1125), 'Best_HR@20': np.float64(16.0496), 'Best_NDCG@20': np.float64(7.377)}
+2025-11-27 15:53:35,068 - logger - INFO - {'Best_epoch_HR@5': 10, 'Best_epoch_NDCG@5': 10, 'Best_epoch_HR@10': 10, 'Best_epoch_NDCG@10': 10, 'Best_epoch_HR@20': 10, 'Best_epoch_NDCG@20': 10}
+2025-11-27 15:53:42,285 - logger - INFO - loss in epoch 11: ce_loss 6.353, dif_loss 0.490, pref_loss 0.497
+2025-11-27 15:53:49,591 - logger - INFO - loss in epoch 12: ce_loss 6.355, dif_loss 0.450, pref_loss 0.497
+2025-11-27 15:53:56,798 - logger - INFO - loss in epoch 13: ce_loss 6.291, dif_loss 0.411, pref_loss 0.490
+2025-11-27 15:54:04,022 - logger - INFO - loss in epoch 14: ce_loss 6.258, dif_loss 0.380, pref_loss 0.492
+2025-11-27 15:54:11,202 - logger - INFO - loss in epoch 15: ce_loss 6.232, dif_loss 0.354, pref_loss 0.489
+2025-11-27 15:54:28,843 - logger - INFO - {'Best_HR@5': np.float64(8.2371), 'Best_NDCG@5': np.float64(5.4908), 'Best_HR@10': np.float64(11.413), 'Best_NDCG@10': np.float64(6.51), 'Best_HR@20': np.float64(16.4147), 'Best_NDCG@20': np.float64(7.7869)}
+2025-11-27 15:54:28,843 - logger - INFO - {'Best_epoch_HR@5': 15, 'Best_epoch_NDCG@5': 15, 'Best_epoch_HR@10': 15, 'Best_epoch_NDCG@10': 15, 'Best_epoch_HR@20': 15, 'Best_epoch_NDCG@20': 15}
+2025-11-27 15:54:35,746 - logger - INFO - loss in epoch 16: ce_loss 6.244, dif_loss 0.321, pref_loss 0.486
+2025-11-27 15:54:42,829 - logger - INFO - loss in epoch 17: ce_loss 6.257, dif_loss 0.298, pref_loss 0.486
+2025-11-27 15:54:50,129 - logger - INFO - loss in epoch 18: ce_loss 6.203, dif_loss 0.291, pref_loss 0.486
+2025-11-27 15:54:57,343 - logger - INFO - loss in epoch 19: ce_loss 6.230, dif_loss 0.264, pref_loss 0.486
+2025-11-27 15:55:04,623 - logger - INFO - loss in epoch 20: ce_loss 6.196, dif_loss 0.252, pref_loss 0.484
+2025-11-27 15:55:22,025 - logger - INFO - {'Best_HR@5': np.float64(8.6787), 'Best_NDCG@5': np.float64(5.7606), 'Best_HR@10': np.float64(11.8461), 'Best_NDCG@10': np.float64(6.7755), 'Best_HR@20': np.float64(16.8308), 'Best_NDCG@20': np.float64(8.0629)}
+2025-11-27 15:55:22,025 - logger - INFO - {'Best_epoch_HR@5': 20, 'Best_epoch_NDCG@5': 20, 'Best_epoch_HR@10': 20, 'Best_epoch_NDCG@10': 20, 'Best_epoch_HR@20': 20, 'Best_epoch_NDCG@20': 20}
+2025-11-27 15:55:29,277 - logger - INFO - loss in epoch 21: ce_loss 6.192, dif_loss 0.230, pref_loss 0.483
+2025-11-27 15:55:36,527 - logger - INFO - loss in epoch 22: ce_loss 6.123, dif_loss 0.223, pref_loss 0.480
+2025-11-27 15:55:43,772 - logger - INFO - loss in epoch 23: ce_loss 6.089, dif_loss 0.217, pref_loss 0.479
+2025-11-27 15:55:51,030 - logger - INFO - loss in epoch 24: ce_loss 6.110, dif_loss 0.213, pref_loss 0.481
+2025-11-27 15:55:58,281 - logger - INFO - loss in epoch 25: ce_loss 6.128, dif_loss 0.194, pref_loss 0.480
+2025-11-27 15:56:15,989 - logger - INFO - {'Best_HR@5': np.float64(8.6787), 'Best_NDCG@5': np.float64(5.767), 'Best_HR@10': np.float64(13.1369), 'Best_NDCG@10': np.float64(7.1845), 'Best_HR@20': np.float64(17.1111), 'Best_NDCG@20': np.float64(8.1872)}
+2025-11-27 15:56:15,989 - logger - INFO - {'Best_epoch_HR@5': 20, 'Best_epoch_NDCG@5': 25, 'Best_epoch_HR@10': 25, 'Best_epoch_NDCG@10': 25, 'Best_epoch_HR@20': 25, 'Best_epoch_NDCG@20': 25}
+2025-11-27 15:56:23,330 - logger - INFO - loss in epoch 26: ce_loss 6.105, dif_loss 0.188, pref_loss 0.479
+2025-11-27 15:56:30,572 - logger - INFO - loss in epoch 27: ce_loss 6.032, dif_loss 0.185, pref_loss 0.476
+2025-11-27 15:56:37,814 - logger - INFO - loss in epoch 28: ce_loss 5.968, dif_loss 0.182, pref_loss 0.475
+2025-11-27 15:56:45,052 - logger - INFO - loss in epoch 29: ce_loss 5.913, dif_loss 0.190, pref_loss 0.475
+2025-11-27 15:56:52,267 - logger - INFO - loss in epoch 30: ce_loss 6.028, dif_loss 0.159, pref_loss 0.474
+2025-11-27 15:57:10,029 - logger - INFO - {'Best_HR@5': np.float64(8.7636), 'Best_NDCG@5': np.float64(5.9405), 'Best_HR@10': np.float64(13.1369), 'Best_NDCG@10': np.float64(7.3054), 'Best_HR@20': np.float64(17.2045), 'Best_NDCG@20': np.float64(8.3421)}
+2025-11-27 15:57:10,029 - logger - INFO - {'Best_epoch_HR@5': 30, 'Best_epoch_NDCG@5': 30, 'Best_epoch_HR@10': 25, 'Best_epoch_NDCG@10': 30, 'Best_epoch_HR@20': 30, 'Best_epoch_NDCG@20': 30}
+2025-11-27 15:57:17,300 - logger - INFO - loss in epoch 31: ce_loss 5.919, dif_loss 0.186, pref_loss 0.475
+2025-11-27 15:57:24,567 - logger - INFO - loss in epoch 32: ce_loss 5.966, dif_loss 0.170, pref_loss 0.475
+2025-11-27 15:57:31,820 - logger - INFO - loss in epoch 33: ce_loss 5.904, dif_loss 0.175, pref_loss 0.474
+2025-11-27 15:57:39,067 - logger - INFO - loss in epoch 34: ce_loss 5.920, dif_loss 0.162, pref_loss 0.473
+2025-11-27 15:57:46,301 - logger - INFO - loss in epoch 35: ce_loss 5.805, dif_loss 0.181, pref_loss 0.474
+2025-11-27 15:58:03,143 - logger - INFO - {'Best_HR@5': np.float64(8.9164), 'Best_NDCG@5': np.float64(6.0295), 'Best_HR@10': np.float64(13.3322), 'Best_NDCG@10': np.float64(7.4266), 'Best_HR@20': np.float64(17.3658), 'Best_NDCG@20': np.float64(8.4432)}
+2025-11-27 15:58:03,143 - logger - INFO - {'Best_epoch_HR@5': 35, 'Best_epoch_NDCG@5': 35, 'Best_epoch_HR@10': 35, 'Best_epoch_NDCG@10': 35, 'Best_epoch_HR@20': 35, 'Best_epoch_NDCG@20': 35}
+2025-11-27 15:58:10,461 - logger - INFO - loss in epoch 36: ce_loss 5.894, dif_loss 0.151, pref_loss 0.471
+2025-11-27 15:58:17,938 - logger - INFO - loss in epoch 37: ce_loss 5.745, dif_loss 0.185, pref_loss 0.475
+2025-11-27 15:58:25,494 - logger - INFO - loss in epoch 38: ce_loss 5.718, dif_loss 0.188, pref_loss 0.474
+2025-11-27 15:58:32,988 - logger - INFO - loss in epoch 39: ce_loss 5.719, dif_loss 0.169, pref_loss 0.471
+2025-11-27 15:58:40,489 - logger - INFO - loss in epoch 40: ce_loss 5.760, dif_loss 0.153, pref_loss 0.470
+2025-11-27 15:58:58,933 - logger - INFO - {'Best_HR@5': np.float64(9.0014), 'Best_NDCG@5': np.float64(6.0295), 'Best_HR@10': np.float64(13.3322), 'Best_NDCG@10': np.float64(7.4266), 'Best_HR@20': np.float64(17.3658), 'Best_NDCG@20': np.float64(8.4432)}
+2025-11-27 15:58:58,933 - logger - INFO - {'Best_epoch_HR@5': 40, 'Best_epoch_NDCG@5': 35, 'Best_epoch_HR@10': 35, 'Best_epoch_NDCG@10': 35, 'Best_epoch_HR@20': 35, 'Best_epoch_NDCG@20': 35}
+2025-11-27 15:59:06,499 - logger - INFO - loss in epoch 41: ce_loss 5.706, dif_loss 0.169, pref_loss 0.475
+2025-11-27 15:59:14,036 - logger - INFO - loss in epoch 42: ce_loss 5.599, dif_loss 0.191, pref_loss 0.473
+2025-11-27 15:59:21,566 - logger - INFO - loss in epoch 43: ce_loss 5.660, dif_loss 0.166, pref_loss 0.470
+2025-11-27 15:59:29,112 - logger - INFO - loss in epoch 44: ce_loss 5.646, dif_loss 0.153, pref_loss 0.468
+2025-11-27 15:59:36,612 - logger - INFO - loss in epoch 45: ce_loss 5.723, dif_loss 0.145, pref_loss 0.472
+2025-11-27 16:00:02,708 - logger - INFO - loss in epoch 46: ce_loss 5.520, dif_loss 0.193, pref_loss 0.474
+2025-11-27 16:00:10,228 - logger - INFO - loss in epoch 47: ce_loss 5.471, dif_loss 0.189, pref_loss 0.472
+2025-11-27 16:00:17,786 - logger - INFO - loss in epoch 48: ce_loss 5.510, dif_loss 0.161, pref_loss 0.469
+2025-11-27 16:00:25,301 - logger - INFO - loss in epoch 49: ce_loss 5.430, dif_loss 0.179, pref_loss 0.470
+2025-11-27 16:00:32,831 - logger - INFO - loss in epoch 50: ce_loss 5.538, dif_loss 0.155, pref_loss 0.469
+2025-11-27 16:00:51,292 - logger - INFO - {'Best_HR@5': np.float64(9.0014), 'Best_NDCG@5': np.float64(6.1742), 'Best_HR@10': np.float64(13.3322), 'Best_NDCG@10': np.float64(7.4549), 'Best_HR@20': np.float64(17.3658), 'Best_NDCG@20': np.float64(8.4599)}
+2025-11-27 16:00:51,292 - logger - INFO - {'Best_epoch_HR@5': 40, 'Best_epoch_NDCG@5': 50, 'Best_epoch_HR@10': 35, 'Best_epoch_NDCG@10': 50, 'Best_epoch_HR@20': 35, 'Best_epoch_NDCG@20': 50}
+2025-11-27 16:00:58,867 - logger - INFO - loss in epoch 51: ce_loss 5.451, dif_loss 0.179, pref_loss 0.471
+2025-11-27 16:01:06,498 - logger - INFO - loss in epoch 52: ce_loss 5.547, dif_loss 0.150, pref_loss 0.470
+2025-11-27 16:01:14,049 - logger - INFO - loss in epoch 53: ce_loss 5.354, dif_loss 0.191, pref_loss 0.470
+2025-11-27 16:01:21,578 - logger - INFO - loss in epoch 54: ce_loss 5.293, dif_loss 0.204, pref_loss 0.470
+2025-11-27 16:01:29,200 - logger - INFO - loss in epoch 55: ce_loss 5.384, dif_loss 0.166, pref_loss 0.469
+2025-11-27 16:01:47,649 - logger - INFO - {'Best_HR@5': np.float64(9.2306), 'Best_NDCG@5': np.float64(6.5098), 'Best_HR@10': np.float64(13.4766), 'Best_NDCG@10': np.float64(7.8544), 'Best_HR@20': np.float64(17.3658), 'Best_NDCG@20': np.float64(8.7795)}
+2025-11-27 16:01:47,649 - logger - INFO - {'Best_epoch_HR@5': 55, 'Best_epoch_NDCG@5': 55, 'Best_epoch_HR@10': 55, 'Best_epoch_NDCG@10': 55, 'Best_epoch_HR@20': 35, 'Best_epoch_NDCG@20': 55}
+2025-11-27 16:01:55,294 - logger - INFO - loss in epoch 56: ce_loss 5.217, dif_loss 0.190, pref_loss 0.469
+2025-11-27 16:02:02,972 - logger - INFO - loss in epoch 57: ce_loss 5.393, dif_loss 0.155, pref_loss 0.468
+2025-11-27 16:02:10,523 - logger - INFO - loss in epoch 58: ce_loss 5.187, dif_loss 0.205, pref_loss 0.470
+2025-11-27 16:02:18,075 - logger - INFO - loss in epoch 59: ce_loss 5.359, dif_loss 0.150, pref_loss 0.467
+2025-11-27 16:02:25,605 - logger - INFO - loss in epoch 60: ce_loss 5.326, dif_loss 0.150, pref_loss 0.466
+2025-11-27 16:02:44,076 - logger - INFO - {'Best_HR@5': np.float64(9.2306), 'Best_NDCG@5': np.float64(6.822), 'Best_HR@10': np.float64(13.4766), 'Best_NDCG@10': np.float64(8.1711), 'Best_HR@20': np.float64(17.3658), 'Best_NDCG@20': np.float64(9.0606)}
+2025-11-27 16:02:44,076 - logger - INFO - {'Best_epoch_HR@5': 55, 'Best_epoch_NDCG@5': 60, 'Best_epoch_HR@10': 55, 'Best_epoch_NDCG@10': 60, 'Best_epoch_HR@20': 35, 'Best_epoch_NDCG@20': 60}
+2025-11-27 16:02:51,670 - logger - INFO - loss in epoch 61: ce_loss 5.193, dif_loss 0.176, pref_loss 0.468
+2025-11-27 16:02:59,249 - logger - INFO - loss in epoch 62: ce_loss 5.213, dif_loss 0.179, pref_loss 0.472
+2025-11-27 16:03:06,831 - logger - INFO - loss in epoch 63: ce_loss 5.260, dif_loss 0.163, pref_loss 0.466
+2025-11-27 16:03:14,139 - logger - INFO - loss in epoch 64: ce_loss 5.237, dif_loss 0.157, pref_loss 0.465
+2025-11-27 16:03:21,528 - logger - INFO - loss in epoch 65: ce_loss 5.286, dif_loss 0.144, pref_loss 0.466
+2025-11-27 16:03:39,974 - logger - INFO - {'Best_HR@5': np.float64(9.2306), 'Best_NDCG@5': np.float64(6.9353), 'Best_HR@10': np.float64(13.5275), 'Best_NDCG@10': np.float64(8.3285), 'Best_HR@20': np.float64(17.3658), 'Best_NDCG@20': np.float64(9.219)}
+2025-11-27 16:03:39,974 - logger - INFO - {'Best_epoch_HR@5': 55, 'Best_epoch_NDCG@5': 65, 'Best_epoch_HR@10': 65, 'Best_epoch_NDCG@10': 65, 'Best_epoch_HR@20': 35, 'Best_epoch_NDCG@20': 65}
+2025-11-27 16:03:47,672 - logger - INFO - loss in epoch 66: ce_loss 5.236, dif_loss 0.154, pref_loss 0.465
+2025-11-27 16:03:55,276 - logger - INFO - loss in epoch 67: ce_loss 5.058, dif_loss 0.197, pref_loss 0.471
+2025-11-27 16:04:02,769 - logger - INFO - loss in epoch 68: ce_loss 5.196, dif_loss 0.157, pref_loss 0.466
+2025-11-27 16:04:10,277 - logger - INFO - loss in epoch 69: ce_loss 5.191, dif_loss 0.154, pref_loss 0.467
+2025-11-27 16:04:17,824 - logger - INFO - loss in epoch 70: ce_loss 5.106, dif_loss 0.170, pref_loss 0.467
+2025-11-27 16:04:36,336 - logger - INFO - {'Best_HR@5': np.float64(9.2476), 'Best_NDCG@5': np.float64(6.9417), 'Best_HR@10': np.float64(13.5275), 'Best_NDCG@10': np.float64(8.3285), 'Best_HR@20': np.float64(17.3658), 'Best_NDCG@20': np.float64(9.219)}
+2025-11-27 16:04:36,336 - logger - INFO - {'Best_epoch_HR@5': 70, 'Best_epoch_NDCG@5': 70, 'Best_epoch_HR@10': 65, 'Best_epoch_NDCG@10': 65, 'Best_epoch_HR@20': 35, 'Best_epoch_NDCG@20': 65}
+2025-11-27 16:04:43,898 - logger - INFO - loss in epoch 71: ce_loss 5.056, dif_loss 0.170, pref_loss 0.468
+2025-11-27 16:04:51,465 - logger - INFO - loss in epoch 72: ce_loss 5.058, dif_loss 0.169, pref_loss 0.466
+2025-11-27 16:04:59,131 - logger - INFO - loss in epoch 73: ce_loss 5.165, dif_loss 0.138, pref_loss 0.465
+2025-11-27 16:05:06,694 - logger - INFO - loss in epoch 74: ce_loss 5.078, dif_loss 0.165, pref_loss 0.468
+2025-11-27 16:05:14,260 - logger - INFO - loss in epoch 75: ce_loss 5.018, dif_loss 0.164, pref_loss 0.465
+2025-11-27 16:05:40,336 - logger - INFO - loss in epoch 76: ce_loss 4.981, dif_loss 0.171, pref_loss 0.465
+2025-11-27 16:05:47,939 - logger - INFO - loss in epoch 77: ce_loss 4.838, dif_loss 0.205, pref_loss 0.466
+2025-11-27 16:05:55,490 - logger - INFO - loss in epoch 78: ce_loss 5.032, dif_loss 0.151, pref_loss 0.464
+2025-11-27 16:06:03,024 - logger - INFO - loss in epoch 79: ce_loss 4.993, dif_loss 0.164, pref_loss 0.466
+2025-11-27 16:06:10,515 - logger - INFO - loss in epoch 80: ce_loss 4.855, dif_loss 0.186, pref_loss 0.466
+2025-11-27 16:06:36,391 - logger - INFO - loss in epoch 81: ce_loss 4.926, dif_loss 0.172, pref_loss 0.467
+2025-11-27 16:06:43,921 - logger - INFO - loss in epoch 82: ce_loss 4.931, dif_loss 0.162, pref_loss 0.465
+2025-11-27 16:06:51,465 - logger - INFO - loss in epoch 83: ce_loss 4.877, dif_loss 0.173, pref_loss 0.465
+2025-11-27 16:06:59,065 - logger - INFO - loss in epoch 84: ce_loss 4.927, dif_loss 0.163, pref_loss 0.467
+2025-11-27 16:07:06,624 - logger - INFO - loss in epoch 85: ce_loss 4.913, dif_loss 0.157, pref_loss 0.465
+2025-11-27 16:07:25,009 - logger - INFO - {'Best_HR@5': np.float64(9.2561), 'Best_NDCG@5': np.float64(6.9417), 'Best_HR@10': np.float64(13.5275), 'Best_NDCG@10': np.float64(8.3285), 'Best_HR@20': np.float64(17.3658), 'Best_NDCG@20': np.float64(9.219)}
+2025-11-27 16:07:25,009 - logger - INFO - {'Best_epoch_HR@5': 85, 'Best_epoch_NDCG@5': 70, 'Best_epoch_HR@10': 65, 'Best_epoch_NDCG@10': 65, 'Best_epoch_HR@20': 35, 'Best_epoch_NDCG@20': 65}
+2025-11-27 16:07:32,538 - logger - INFO - loss in epoch 86: ce_loss 4.831, dif_loss 0.174, pref_loss 0.465
+2025-11-27 16:07:40,066 - logger - INFO - loss in epoch 87: ce_loss 4.853, dif_loss 0.172, pref_loss 0.464
+2025-11-27 16:07:47,528 - logger - INFO - loss in epoch 88: ce_loss 4.798, dif_loss 0.184, pref_loss 0.467
+2025-11-27 16:07:55,091 - logger - INFO - loss in epoch 89: ce_loss 4.819, dif_loss 0.164, pref_loss 0.462
+2025-11-27 16:08:02,596 - logger - INFO - loss in epoch 90: ce_loss 4.887, dif_loss 0.148, pref_loss 0.462
+2025-11-27 16:08:28,849 - logger - INFO - loss in epoch 91: ce_loss 4.689, dif_loss 0.180, pref_loss 0.463
+2025-11-27 16:08:36,428 - logger - INFO - loss in epoch 92: ce_loss 4.821, dif_loss 0.159, pref_loss 0.463
+2025-11-27 16:08:43,919 - logger - INFO - loss in epoch 93: ce_loss 4.655, dif_loss 0.191, pref_loss 0.465
+2025-11-27 16:08:51,496 - logger - INFO - loss in epoch 94: ce_loss 4.755, dif_loss 0.169, pref_loss 0.465
+2025-11-27 16:08:59,063 - logger - INFO - loss in epoch 95: ce_loss 4.737, dif_loss 0.178, pref_loss 0.466
+2025-11-27 16:09:17,456 - logger - INFO - {'Best_HR@5': np.float64(9.2561), 'Best_NDCG@5': np.float64(6.9417), 'Best_HR@10': np.float64(13.5275), 'Best_NDCG@10': np.float64(8.3285), 'Best_HR@20': np.float64(17.3658), 'Best_NDCG@20': np.float64(9.2191)}
+2025-11-27 16:09:17,457 - logger - INFO - {'Best_epoch_HR@5': 85, 'Best_epoch_NDCG@5': 70, 'Best_epoch_HR@10': 65, 'Best_epoch_NDCG@10': 65, 'Best_epoch_HR@20': 35, 'Best_epoch_NDCG@20': 95}
+2025-11-27 16:09:25,007 - logger - INFO - loss in epoch 96: ce_loss 4.643, dif_loss 0.196, pref_loss 0.468
+2025-11-27 16:09:32,562 - logger - INFO - loss in epoch 97: ce_loss 4.817, dif_loss 0.152, pref_loss 0.464
+2025-11-27 16:09:40,076 - logger - INFO - loss in epoch 98: ce_loss 4.625, dif_loss 0.183, pref_loss 0.466
+2025-11-27 16:09:47,599 - logger - INFO - loss in epoch 99: ce_loss 4.654, dif_loss 0.183, pref_loss 0.466
+2025-11-27 16:09:55,084 - logger - INFO - loss in epoch 100: ce_loss 4.719, dif_loss 0.168, pref_loss 0.467
+2025-11-27 16:10:13,506 - logger - INFO - {'Best_HR@5': np.float64(9.2561), 'Best_NDCG@5': np.float64(6.9748), 'Best_HR@10': np.float64(13.5275), 'Best_NDCG@10': np.float64(8.3285), 'Best_HR@20': np.float64(17.3658), 'Best_NDCG@20': np.float64(9.2191)}
+2025-11-27 16:10:13,507 - logger - INFO - {'Best_epoch_HR@5': 85, 'Best_epoch_NDCG@5': 100, 'Best_epoch_HR@10': 65, 'Best_epoch_NDCG@10': 65, 'Best_epoch_HR@20': 35, 'Best_epoch_NDCG@20': 95}
+2025-11-27 16:10:21,042 - logger - INFO - loss in epoch 101: ce_loss 4.710, dif_loss 0.170, pref_loss 0.464
+2025-11-27 16:10:28,471 - logger - INFO - loss in epoch 102: ce_loss 4.535, dif_loss 0.186, pref_loss 0.463
+2025-11-27 16:10:35,767 - logger - INFO - loss in epoch 103: ce_loss 4.691, dif_loss 0.151, pref_loss 0.462
+2025-11-27 16:10:42,948 - logger - INFO - loss in epoch 104: ce_loss 4.719, dif_loss 0.148, pref_loss 0.463
+2025-11-27 16:10:50,272 - logger - INFO - loss in epoch 105: ce_loss 4.713, dif_loss 0.152, pref_loss 0.463
+2025-11-27 16:11:08,438 - logger - INFO - {'Best_HR@5': np.float64(9.2561), 'Best_NDCG@5': np.float64(7.005), 'Best_HR@10': np.float64(13.5275), 'Best_NDCG@10': np.float64(8.3285), 'Best_HR@20': np.float64(17.3658), 'Best_NDCG@20': np.float64(9.2579)}
+2025-11-27 16:11:08,438 - logger - INFO - {'Best_epoch_HR@5': 85, 'Best_epoch_NDCG@5': 105, 'Best_epoch_HR@10': 65, 'Best_epoch_NDCG@10': 65, 'Best_epoch_HR@20': 35, 'Best_epoch_NDCG@20': 105}
+2025-11-27 16:11:15,822 - logger - INFO - loss in epoch 106: ce_loss 4.442, dif_loss 0.200, pref_loss 0.464
+2025-11-27 16:11:23,231 - logger - INFO - loss in epoch 107: ce_loss 4.633, dif_loss 0.153, pref_loss 0.461
+2025-11-27 16:11:30,668 - logger - INFO - loss in epoch 108: ce_loss 4.557, dif_loss 0.167, pref_loss 0.461
+2025-11-27 16:11:38,098 - logger - INFO - loss in epoch 109: ce_loss 4.658, dif_loss 0.149, pref_loss 0.462
+2025-11-27 16:11:45,499 - logger - INFO - loss in epoch 110: ce_loss 4.573, dif_loss 0.165, pref_loss 0.463
+2025-11-27 16:12:03,695 - logger - INFO - {'Best_HR@5': np.float64(9.2561), 'Best_NDCG@5': np.float64(7.015), 'Best_HR@10': np.float64(13.5275), 'Best_NDCG@10': np.float64(8.376), 'Best_HR@20': np.float64(17.3658), 'Best_NDCG@20': np.float64(9.2734)}
+2025-11-27 16:12:03,695 - logger - INFO - {'Best_epoch_HR@5': 85, 'Best_epoch_NDCG@5': 110, 'Best_epoch_HR@10': 65, 'Best_epoch_NDCG@10': 110, 'Best_epoch_HR@20': 35, 'Best_epoch_NDCG@20': 110}
+2025-11-27 16:12:11,221 - logger - INFO - loss in epoch 111: ce_loss 4.480, dif_loss 0.186, pref_loss 0.463
+2025-11-27 16:12:18,730 - logger - INFO - loss in epoch 112: ce_loss 4.457, dif_loss 0.179, pref_loss 0.461
+2025-11-27 16:12:26,147 - logger - INFO - loss in epoch 113: ce_loss 4.558, dif_loss 0.156, pref_loss 0.463
+2025-11-27 16:12:33,578 - logger - INFO - loss in epoch 114: ce_loss 4.663, dif_loss 0.134, pref_loss 0.458
+2025-11-27 16:12:40,987 - logger - INFO - loss in epoch 115: ce_loss 4.454, dif_loss 0.174, pref_loss 0.462
+2025-11-27 16:12:58,881 - logger - INFO - {'Best_HR@5': np.float64(9.2561), 'Best_NDCG@5': np.float64(7.0211), 'Best_HR@10': np.float64(13.5275), 'Best_NDCG@10': np.float64(8.376), 'Best_HR@20': np.float64(17.3658), 'Best_NDCG@20': np.float64(9.2734)}
+2025-11-27 16:12:58,882 - logger - INFO - {'Best_epoch_HR@5': 85, 'Best_epoch_NDCG@5': 115, 'Best_epoch_HR@10': 65, 'Best_epoch_NDCG@10': 110, 'Best_epoch_HR@20': 35, 'Best_epoch_NDCG@20': 110}
+2025-11-27 16:13:06,478 - logger - INFO - loss in epoch 116: ce_loss 4.450, dif_loss 0.167, pref_loss 0.461
+2025-11-27 16:13:13,960 - logger - INFO - loss in epoch 117: ce_loss 4.504, dif_loss 0.160, pref_loss 0.460
+2025-11-27 16:13:21,291 - logger - INFO - loss in epoch 118: ce_loss 4.423, dif_loss 0.176, pref_loss 0.464
+2025-11-27 16:13:28,710 - logger - INFO - loss in epoch 119: ce_loss 4.468, dif_loss 0.177, pref_loss 0.464
+2025-11-27 16:13:36,101 - logger - INFO - loss in epoch 120: ce_loss 4.329, dif_loss 0.202, pref_loss 0.465
+2025-11-27 16:14:01,623 - logger - INFO - loss in epoch 121: ce_loss 4.445, dif_loss 0.165, pref_loss 0.461
+2025-11-27 16:14:08,787 - logger - INFO - loss in epoch 122: ce_loss 4.409, dif_loss 0.169, pref_loss 0.464
+2025-11-27 16:14:15,964 - logger - INFO - loss in epoch 123: ce_loss 4.469, dif_loss 0.156, pref_loss 0.461
+2025-11-27 16:14:23,299 - logger - INFO - loss in epoch 124: ce_loss 4.497, dif_loss 0.150, pref_loss 0.461
+2025-11-27 16:14:30,661 - logger - INFO - loss in epoch 125: ce_loss 4.323, dif_loss 0.183, pref_loss 0.463
+2025-11-27 16:14:56,018 - logger - INFO - loss in epoch 126: ce_loss 4.353, dif_loss 0.180, pref_loss 0.461
+2025-11-27 16:15:02,866 - logger - INFO - loss in epoch 127: ce_loss 4.433, dif_loss 0.171, pref_loss 0.464
+2025-11-27 16:15:09,527 - logger - INFO - loss in epoch 128: ce_loss 4.224, dif_loss 0.195, pref_loss 0.461
+2025-11-27 16:15:16,235 - logger - INFO - loss in epoch 129: ce_loss 4.406, dif_loss 0.156, pref_loss 0.460
+2025-11-27 16:15:22,995 - logger - INFO - loss in epoch 130: ce_loss 4.381, dif_loss 0.162, pref_loss 0.461
+2025-11-27 16:15:47,903 - logger - INFO - loss in epoch 131: ce_loss 4.421, dif_loss 0.150, pref_loss 0.457
+2025-11-27 16:15:55,237 - logger - INFO - loss in epoch 132: ce_loss 4.226, dif_loss 0.189, pref_loss 0.460
+2025-11-27 16:16:02,566 - logger - INFO - loss in epoch 133: ce_loss 4.283, dif_loss 0.186, pref_loss 0.464
+2025-11-27 16:16:10,012 - logger - INFO - loss in epoch 134: ce_loss 4.196, dif_loss 0.197, pref_loss 0.464
+2025-11-27 16:16:17,492 - logger - INFO - loss in epoch 135: ce_loss 4.239, dif_loss 0.177, pref_loss 0.461
+2025-11-27 16:16:35,494 - logger - INFO - {'Best_HR@5': np.float64(9.2561), 'Best_NDCG@5': np.float64(7.0211), 'Best_HR@10': np.float64(13.5275), 'Best_NDCG@10': np.float64(8.376), 'Best_HR@20': np.float64(17.3658), 'Best_NDCG@20': np.float64(9.2734)}
+2025-11-27 16:16:35,494 - logger - INFO - {'Best_epoch_HR@5': 85, 'Best_epoch_NDCG@5': 115, 'Best_epoch_HR@10': 65, 'Best_epoch_NDCG@10': 110, 'Best_epoch_HR@20': 35, 'Best_epoch_NDCG@20': 110}
+2025-11-27 16:16:35,494 - logger - INFO - start testing: 2025-11-27 16:16:35.494208
+2025-11-27 16:16:53,652 - logger - INFO - Test ------------------------------------------------------
+2025-11-27 16:16:53,652 - logger - INFO - {'HR@5': np.float64(6.7425), 'NDCG@5': np.float64(4.9318), 'HR@10': np.float64(9.2137), 'NDCG@10': np.float64(5.7291), 'HR@20': np.float64(13.57), 'NDCG@20': np.float64(6.8239)}
+2025-11-27 16:16:53,652 - logger - INFO - Best Eval---------------------------------------------------------
+2025-11-27 16:16:53,652 - logger - INFO - {'Best_HR@5': np.float64(9.2561), 'Best_NDCG@5': np.float64(7.0211), 'Best_HR@10': np.float64(13.5275), 'Best_NDCG@10': np.float64(8.376), 'Best_HR@20': np.float64(17.3658), 'Best_NDCG@20': np.float64(9.2734)}
+2025-11-27 16:16:53,652 - logger - INFO - {'Best_epoch_HR@5': 85, 'Best_epoch_NDCG@5': 115, 'Best_epoch_HR@10': 65, 'Best_epoch_NDCG@10': 110, 'Best_epoch_HR@20': 35, 'Best_epoch_NDCG@20': 110}
+2025-11-27 16:16:53,653 - logger - INFO - Training duration: 25.0 minutes and 8.643250226974487 seconds

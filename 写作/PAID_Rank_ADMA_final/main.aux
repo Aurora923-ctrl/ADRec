@@ -1,0 +1,128 @@
+\relax 
+\citation{rendle2010fpmc,hidasi2016gru4rec,tang2018caser,kang2018sasrec}
+\citation{wu2019srgnn,li2020tisasrec,zhou2020s3rec}
+\@writefile{toc}{\contentsline {title}{PAID-Rank: Position-Aware Adaptive Diffusion with Auxiliary Ranking Optimization for Sequential Recommendation}{1}{}\protected@file@percent }
+\@writefile{toc}{\authcount {1}}
+\@writefile{toc}{\contentsline {author}{Anonymous Author(s)}{1}{}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {1}Introduction}{1}{}\protected@file@percent }
+\newlabel{sec:introduction}{{1}{1}{}{section.1}{}}
+\citation{rendle2010fpmc}
+\citation{hidasi2016gru4rec}
+\citation{tang2018caser}
+\citation{wu2019srgnn}
+\citation{kang2018sasrec}
+\citation{li2020tisasrec}
+\citation{sun2019bert4rec}
+\citation{zhou2020s3rec}
+\citation{qiu2022duorec}
+\citation{klenitskiy2023sasrecplus}
+\citation{liang2018vae}
+\citation{sachdeva2019svae}
+\citation{ho2020ddpm,song2021score}
+\citation{wang2023diffrec}
+\citation{li2023diffurec}
+\citation{liu2023diffuasr}
+\citation{xie2024ddsr}
+\citation{diqdiff2025}
+\citation{chen2025adrec}
+\@writefile{toc}{\contentsline {section}{\numberline {2}Related Work}{3}{}\protected@file@percent }
+\newlabel{sec:related_work}{{2}{3}{}{section.2}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {2.1}Discriminative Sequential Recommendation}{3}{}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {2.2}Generative and Diffusion-based Recommendation}{3}{}\protected@file@percent }
+\citation{li2023diffurec}
+\citation{liu2023diffuasr}
+\citation{xie2024ddsr}
+\citation{chen2025adrec}
+\@writefile{lot}{\contentsline {table}{\numberline {1}{\ignorespaces Comparison of representative diffusion-based sequential recommendation methods. ``Gran.'' denotes diffusion granularity. ``Sched.'' denotes the time-step schedule. ``Rank'' indicates whether an explicit auxiliary ranking constraint is used. ``Pos-aware'' indicates whether the time-step schedule depends on sequence position.}}{4}{}\protected@file@percent }
+\newlabel{tab:method_comparison}{{1}{4}{}{table.1}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {3}Method}{4}{}\protected@file@percent }
+\newlabel{sec:method}{{3}{4}{}{section.3}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {3.1}Problem Formulation}{4}{}\protected@file@percent }
+\newlabel{subsec:problem}{{3.1}{4}{}{subsection.3.1}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {1}{\ignorespaces Training and inference pipeline of PAID-Rank. PAIE, ATS, the ranking branch, and PCGrad are used only during joint training; inference keeps the original denoising-based prediction procedure.}}{5}{}\protected@file@percent }
+\newlabel{fig:paid_rank_pipeline}{{1}{5}{}{figure.1}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {2}{\ignorespaces Module-level architecture of PAID-Rank. PAIE estimates normalized position importance, ATS samples position-specific diffusion steps, and the denoising network is trained with CE, reconstruction, and auxiliary cosine-BPR losses coordinated by PCGrad.}}{5}{}\protected@file@percent }
+\newlabel{fig:paid_rank_arch}{{2}{5}{}{figure.2}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {3.2}Position-Aware Importance Estimation}{6}{}\protected@file@percent }
+\newlabel{subsec:paie}{{3.2}{6}{}{subsection.3.2}{}}
+\newlabel{eq:position_prior}{{2}{6}{}{equation.2}{}}
+\newlabel{eq:position_importance}{{3}{6}{}{equation.3}{}}
+\@writefile{toc}{\contentsline {paragraph}{Optional importance variants.}{6}{}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Error-consistency regularization.}{6}{}\protected@file@percent }
+\citation{rendle2009bpr}
+\newlabel{eq:importance_regularization}{{6}{7}{}{equation.6}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {3.3}Adaptive Time-step Scheduler}{7}{}\protected@file@percent }
+\newlabel{subsec:ats}{{3.3}{7}{}{subsection.3.3}{}}
+\newlabel{eq:expected_timestep}{{7}{7}{}{equation.7}{}}
+\newlabel{eq:ats_distribution}{{8}{7}{}{equation.8}{}}
+\newlabel{eq:forward_noising}{{9}{7}{}{equation.9}{}}
+\newlabel{eq:mse_loss}{{10}{7}{}{equation.10}{}}
+\newlabel{eq:regularized_diff_loss}{{11}{7}{}{equation.11}{}}
+\citation{yu2020pcgrad}
+\citation{he2016amazon}
+\citation{harper2015movielens}
+\citation{hidasi2016gru4rec}
+\citation{kang2018sasrec,klenitskiy2023sasrecplus}
+\citation{sun2019bert4rec}
+\citation{sachdeva2019svae}
+\citation{li2023diffurec}
+\citation{chen2025adrec}
+\citation{klenitskiy2023sasrecplus}
+\@writefile{toc}{\contentsline {subsection}{\numberline {3.4}Auxiliary Ranking Objective and PCGrad}{8}{}\protected@file@percent }
+\newlabel{subsec:rank_pcgrad}{{3.4}{8}{}{subsection.3.4}{}}
+\newlabel{eq:rank_loss}{{14}{8}{}{equation.14}{}}
+\newlabel{eq:pcgrad_objectives}{{15}{8}{}{equation.15}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {4}Experiments and Analysis}{8}{}\protected@file@percent }
+\newlabel{sec:experiments}{{4}{8}{}{section.4}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {4.1}Experimental Settings}{8}{}\protected@file@percent }
+\newlabel{subsec:settings}{{4.1}{8}{}{subsection.4.1}{}}
+\@writefile{toc}{\contentsline {subsubsection}{Datasets and preprocessing.}{8}{}\protected@file@percent }
+\@writefile{lot}{\contentsline {table}{\numberline {2}{\ignorespaces Dataset statistics after preprocessing. $|\mathcal  {U}|$ and $|\mathcal  {V}|$ denote the numbers of users and items. $\#\mathrm  {Int.}$ denotes the number of interactions. $\mathrm  {Avg.|S|}$ denotes the average sequence length. The maximum sequence length is set to $L_{\max }=50$.}}{9}{}\protected@file@percent }
+\newlabel{tab:dataset_stats}{{2}{9}{}{table.2}{}}
+\@writefile{lot}{\contentsline {table}{\numberline {3}{\ignorespaces Key hyperparameter settings. The implementation name is mapped to the notation used in this paper.}}{9}{}\protected@file@percent }
+\newlabel{tab:hyperparams}{{3}{9}{}{table.3}{}}
+\@writefile{toc}{\contentsline {subsubsection}{Baselines.}{9}{}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{Evaluation protocol and implementation details.}{9}{}\protected@file@percent }
+\@writefile{lot}{\contentsline {table}{\numberline {4}{\ignorespaces Overall results (\%) on four sequential recommendation datasets. Results are reported under the same chronological leave-one-out evaluation protocol. The best results are in bold and the second-best results are underlined. ``Improv.'' denotes the relative improvement of PAID-Rank over ADRec.}}{10}{}\protected@file@percent }
+\newlabel{tab:main_results}{{4}{10}{}{table.4}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {4.2}Overall Recommendation Performance}{10}{}\protected@file@percent }
+\newlabel{subsec:overall}{{4.2}{10}{}{subsection.4.2}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {4.3}Ablation Study}{10}{}\protected@file@percent }
+\newlabel{subsec:ablation}{{4.3}{10}{}{subsection.4.3}{}}
+\@writefile{lot}{\contentsline {table}{\numberline {5}{\ignorespaces Ablation results of PAID-Rank (HR@20 / NDCG@20, \%).}}{11}{}\protected@file@percent }
+\newlabel{tab:ablation}{{5}{11}{}{table.5}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {4.4}Efficiency and Complexity Analysis}{11}{}\protected@file@percent }
+\newlabel{subsec:complexity}{{4.4}{11}{}{subsection.4.4}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {4.5}Discussion on Hyperparameters and Scope}{11}{}\protected@file@percent }
+\newlabel{subsec:sensitivity}{{4.5}{11}{}{subsection.4.5}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {4.6}Scheduler Visualization}{11}{}\protected@file@percent }
+\newlabel{subsec:diagnosis_plots}{{4.6}{11}{}{subsection.4.6}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {3}{\ignorespaces Diagnostic visualization of the adaptive time-step scheduler on the Toys dataset. The top panels show position-wise importance and expected time-step allocation averaged over variable-length left-padded sequences after valid-position masking, and the bottom panels show the global and head-vs-tail time-step distributions. Tail positions exhibit a relative left shift compared with head positions, while the global distribution maintains broad diffusion coverage.}}{12}{}\protected@file@percent }
+\newlabel{fig:diag_timestep}{{3}{12}{}{figure.3}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {5}Conclusion}{12}{}\protected@file@percent }
+\newlabel{sec:conclusion}{{5}{12}{}{section.5}{}}
+\bibcite{rendle2010fpmc}{1}
+\bibcite{hidasi2016gru4rec}{2}
+\bibcite{tang2018caser}{3}
+\bibcite{kang2018sasrec}{4}
+\bibcite{wu2019srgnn}{5}
+\bibcite{li2020tisasrec}{6}
+\bibcite{sun2019bert4rec}{7}
+\bibcite{zhou2020s3rec}{8}
+\bibcite{qiu2022duorec}{9}
+\bibcite{klenitskiy2023sasrecplus}{10}
+\bibcite{liang2018vae}{11}
+\bibcite{sachdeva2019svae}{12}
+\bibcite{ho2020ddpm}{13}
+\bibcite{song2021score}{14}
+\bibcite{wang2023diffrec}{15}
+\bibcite{li2023diffurec}{16}
+\bibcite{liu2023diffuasr}{17}
+\bibcite{xie2024ddsr}{18}
+\bibcite{diqdiff2025}{19}
+\bibcite{chen2025adrec}{20}
+\bibcite{rendle2009bpr}{21}
+\bibcite{yu2020pcgrad}{22}
+\bibcite{he2016amazon}{23}
+\bibcite{harper2015movielens}{24}
+\gdef \@abspage@last{14}

@@ -1,0 +1,69 @@
+2025-11-12 18:48:13,527 - logger - INFO - _
+2025-11-12 18:48:13,527 - logger - INFO - Arguments:
+dataset: beauty
+log_file: logs/
+random_seed: 2025
+device: cuda:0
+max_len: 50
+hidden_size: 128
+dropout: 0.1
+emb_dropout: 0.3
+hidden_act: gelu
+dif_blocks: 2
+dif_decoder: att
+is_causal: True
+model: adrec
+batch_size: 512
+epochs: 500
+optimizer: Adam
+lr: 0.001
+weight_decay: 1e-05
+momentum: None
+decay_step: 100
+gamma: 0.1
+loss: mse
+loss_scale: 1.0
+pcgrad: True
+schedule_sampler_name: uniform
+diffusion_steps: 32
+noise_schedule: trunc_lin
+beta_a: 0.3
+beta_b: 10
+dif_objective: pred_x0
+parallel_ag: True
+rescale_timesteps: True
+lambda_uncertainty: 0.01
+cfg_scale: 1
+geodesic: False
+independent: True
+metric_ks: [5, 10, 20]
+eval_interval: 5
+epoch_wo_val: 0
+patience: 4
+diversity_measure: False
+epoch_time_avg: False
+split_onebyone: False
+pretrained: True
+freeze_emb: True
+description: _
+item_num: 6086
+2025-11-12 18:48:18,510 - logger - INFO - loss in epoch 0: ce_loss 7.578, dif_loss 0.969
+2025-11-12 18:48:23,056 - logger - INFO - loss in epoch 1: ce_loss 6.700, dif_loss 0.917
+2025-11-12 18:48:27,443 - logger - INFO - loss in epoch 2: ce_loss 6.633, dif_loss 0.879
+2025-11-12 18:48:31,997 - logger - INFO - loss in epoch 3: ce_loss 6.771, dif_loss 0.839
+2025-11-12 18:48:36,686 - logger - INFO - loss in epoch 4: ce_loss 6.980, dif_loss 0.792
+2025-11-12 18:48:36,686 - logger - INFO - warm up finishied in epoch 5
+2025-11-12 18:48:41,620 - logger - INFO - loss in epoch 5: ce_loss 6.904, dif_loss 0.735
+2025-11-12 18:48:58,334 - logger - INFO - {'Best_HR@5': np.float64(6.8854), 'Best_NDCG@5': np.float64(4.3105), 'Best_HR@10': np.float64(10.6266), 'Best_NDCG@10': np.float64(5.5118), 'Best_HR@20': np.float64(15.5015), 'Best_NDCG@20': np.float64(6.7349)}
+2025-11-12 18:48:58,335 - logger - INFO - {'Best_epoch_HR@5': 5, 'Best_epoch_NDCG@5': 5, 'Best_epoch_HR@10': 5, 'Best_epoch_NDCG@10': 5, 'Best_epoch_HR@20': 5, 'Best_epoch_NDCG@20': 5}
+2025-11-12 18:49:02,954 - logger - INFO - loss in epoch 6: ce_loss 6.445, dif_loss 0.671
+2025-11-12 18:49:07,562 - logger - INFO - loss in epoch 7: ce_loss 6.252, dif_loss 0.613
+2025-11-12 18:49:12,074 - logger - INFO - loss in epoch 8: ce_loss 6.136, dif_loss 0.559
+2025-11-12 18:49:16,557 - logger - INFO - loss in epoch 9: ce_loss 6.056, dif_loss 0.509
+2025-11-12 18:49:21,120 - logger - INFO - loss in epoch 10: ce_loss 5.998, dif_loss 0.462
+2025-11-12 18:49:36,836 - logger - INFO - {'Best_HR@5': np.float64(9.1935), 'Best_NDCG@5': np.float64(6.0458), 'Best_HR@10': np.float64(13.1976), 'Best_NDCG@10': np.float64(7.3405), 'Best_HR@20': np.float64(18.7658), 'Best_NDCG@20': np.float64(8.7429)}
+2025-11-12 18:49:36,836 - logger - INFO - {'Best_epoch_HR@5': 10, 'Best_epoch_NDCG@5': 10, 'Best_epoch_HR@10': 10, 'Best_epoch_NDCG@10': 10, 'Best_epoch_HR@20': 10, 'Best_epoch_NDCG@20': 10}
+2025-11-12 18:49:41,324 - logger - INFO - loss in epoch 11: ce_loss 5.954, dif_loss 0.420
+2025-11-12 18:49:46,197 - logger - INFO - loss in epoch 12: ce_loss 5.910, dif_loss 0.383
+2025-11-12 18:49:51,106 - logger - INFO - loss in epoch 13: ce_loss 5.882, dif_loss 0.350
+2025-11-12 18:49:56,078 - logger - INFO - loss in epoch 14: ce_loss 5.853, dif_loss 0.321

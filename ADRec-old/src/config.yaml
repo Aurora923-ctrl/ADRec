@@ -1,0 +1,142 @@
+# ==================== 数据集和基础配置 ====================
+# 数据集规模参考：
+#   ml-100k: 1008 (最小)   - 小数据集
+#   baby: 4731 (小)        - 小数据集
+#   beauty: 6086 (小-中)   - 小-中数据集
+#   toys: 7309 (中)        - 中等数据集
+#   sports: 12301 (中-大)  - 中-大数据集
+#   yelp: 64669 (最大)     - 大数据集
+#
+# 当前使用的数据集（请根据需要修改）：
+dataset: beauty  # 数据集名称: baby, beauty, ml-100k, sports, toys, yelp
+log_file: logs/  # 日志文件目录路径
+random_seed: 2025  # 随机种子
+device: cuda:0  # 设备选择: 'cpu', 'cuda:0', 'cuda:1'
+
+# ==================== 模型架构参数 ====================
+# 根据数据集规模调整：
+#   小数据集(ml-100k, baby, beauty): hidden_size=128
+#   中等数据集(toys, sports): hidden_size=128
+#   大数据集(yelp): hidden_size=256 (可选，显存充足时)
+max_len: 50  # 序列最大长度
+hidden_size: 128  # 模型隐藏层大小（yelp可尝试256）
+dropout: 0.1  # 表示层的dropout率
+emb_dropout: 0.3  # 物品嵌入层的dropout率
+hidden_act: gelu  # 激活函数: gelu 或 relu
+dif_blocks: 2  # 去噪解码器块的数量
+dif_decoder: att  # 去噪解码器选择: 'att' 或 'mlp'
+is_causal: true  # 是否使用因果注意力
+model: adrec  # 模型名称: 'diffurec', 'adrec'
+
+# ==================== 训练超参数 ====================
+# 根据数据集规模调整batch_size：
+#   小数据集(ml-100k, baby, beauty): batch_size=512
+#   中等数据集(toys, sports): batch_size=512
+#   大数据集(yelp): batch_size=1024 (显存充足时，否则保持512)
+batch_size: 512  # 批次大小（yelp可尝试1024，显存不足可降至256）
+epochs: 500  # 训练轮数
+optimizer: Adam  # 优化器选择: 'SGD' 或 'Adam'
+lr: 0.001  # 学习率
+weight_decay: 0.00001  # L2正则化系数
+momentum: null  # SGD动量参数（不使用则为None）
+decay_step: 100  # StepLR学习率衰减步数
+gamma: 0.1  # StepLR学习率衰减系数
+loss: mse  # 损失函数: 'ce', 'mse'
+loss_scale: 1.  # 损失缩放因子
+pcgrad: true  # 是否使用PCGrad梯度处理（建议开启，改进版使用true）
+
+# ==================== 扩散模型参数 ====================
+# 根据数据集规模调整diffusion_steps：
+#   小数据集(ml-100k, baby, beauty): diffusion_steps=32
+#   中等数据集(toys, sports): diffusion_steps=32
+#   大数据集(yelp): diffusion_steps=64 (可选，提升性能但增加训练时间)
+schedule_sampler_name: uniform  # 扩散时间步t的采样方式
+diffusion_steps: 32  # 扩散步数（yelp可尝试64）
+noise_schedule: trunc_lin  # 噪声调度方式
+beta_a: 0.3  # beta调度参数a
+beta_b: 10  # beta调度参数b
+dif_objective: pred_x0  # 扩散损失目标: 'pred_noise', 'pred_x0', 'pred_v'
+parallel_ag: true  # 是否以逐token自回归方式训练
+rescale_timesteps: true  # 是否重新缩放时间步
+# 根据改进建议调整lambda_uncertainty：
+#   原始值: 0.001 (可能过小)
+#   推荐值: 0.01 (小数据集) 或 0.1 (大数据集)
+lambda_uncertainty: 0.01  # 不确定性权重（从0.001提升到0.01，根据改进建议）
+cfg_scale: 1  # 分类器引导缩放因子
+geodesic: false  # 是否使用测地线扩散（仅在adrec中可用）
+independent: true  # 是否使用独立扩散（仅在adrec中可用）
+
+# ==================== 评估和监控参数 ====================
+metric_ks:
+  - 5
+  - 10
+  - 20  # Metric@k中的k值列表
+eval_interval: 5  # 评估间隔（每多少个epoch评估一次）
+epoch_wo_val: 0  # 前多少个epoch不进行评估
+patience: 4  # 早停等待的epoch数
+diversity_measure: false  # 是否测量推荐结果的多样性
+epoch_time_avg: false  # 是否计算一个epoch训练的平均时间
+
+# ==================== 其他配置 ====================
+split_onebyone: false  # 是否逐个分割序列
+pretrained: false  # 是否使用预训练模型
+freeze_emb: false  # 是否冻结嵌入层
+description: _  # 模型简要介绍
+
+# ==================== 数据集特定配置建议 ====================
+# 
+# 【ml-100k】物品数: 1008 (最小数据集)
+#   推荐配置:
+#     - batch_size: 512
+#     - hidden_size: 128
+#     - diffusion_steps: 32
+#     - lambda_uncertainty: 0.01
+#     - pcgrad: true
+#
+# 【baby】物品数: 4731 (小数据集)
+#   推荐配置:
+#     - batch_size: 512
+#     - hidden_size: 128
+#     - diffusion_steps: 32
+#     - lambda_uncertainty: 0.01
+#     - pcgrad: true
+#
+# 【beauty】物品数: 6086 (小-中数据集)
+#   推荐配置:
+#     - batch_size: 512
+#     - hidden_size: 128
+#     - diffusion_steps: 32
+#     - lambda_uncertainty: 0.01
+#     - pcgrad: true
+#
+# 【toys】物品数: 7309 (中等数据集) - 当前配置
+#   推荐配置:
+#     - batch_size: 512
+#     - hidden_size: 128
+#     - diffusion_steps: 32
+#     - lambda_uncertainty: 0.01
+#     - pcgrad: true
+#
+# 【sports】物品数: 12301 (中-大数据集)
+#   推荐配置:
+#     - batch_size: 512 (显存充足可尝试1024)
+#     - hidden_size: 128
+#     - diffusion_steps: 32 (可选64)
+#     - lambda_uncertainty: 0.01
+#     - pcgrad: true
+#
+# 【yelp】物品数: 64669 (最大数据集)
+#   推荐配置:
+#     - batch_size: 1024 (显存不足可降至512或256)
+#     - hidden_size: 256 (显存不足可保持128)
+#     - diffusion_steps: 64 (可选，提升性能但增加训练时间)
+#     - lambda_uncertainty: 0.1 (大数据集可尝试更大值)
+#     - pcgrad: true
+#     - 注意: yelp数据集较大，训练时间会显著增加
+#
+# ==================== 参数调整优先级 ====================
+# 1. 必须调整: lambda_uncertainty (从0.001提升到0.01或0.1)
+# 2. 建议开启: pcgrad (从false改为true)
+# 3. 根据显存调整: batch_size (大数据集可增大)
+# 4. 可选优化: diffusion_steps (大数据集可增加到64)
+# 5. 可选优化: hidden_size (大数据集可增加到256)

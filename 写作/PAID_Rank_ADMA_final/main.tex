@@ -1,0 +1,488 @@
+\documentclass[runningheads,a4paper]{llncs}
+
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{amsmath,amssymb}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{multirow}
+\usepackage{bm}
+\usepackage{array}
+\usepackage{float}
+\usepackage{placeins}
+\usepackage{url}
+\pdfpagewidth=210mm
+\pdfpageheight=297mm
+
+\graphicspath{{img/}}
+\newcommand{\safeincludegraphics}[3]{%
+  \IfFileExists{img/#2}{\includegraphics[width=#1]{#2}}{%
+    \fbox{\parbox[c][#3][c]{0.95\textwidth}{\centering Missing figure file: \texttt{img/#2}}}%
+  }%
+}
+
+% Compact layout for Springer LNCS/LNAI submission.
+\setcounter{topnumber}{4}
+\setcounter{bottomnumber}{2}
+\setcounter{totalnumber}{6}
+\renewcommand{\textfraction}{0.05}
+\renewcommand{\topfraction}{0.95}
+\renewcommand{\bottomfraction}{0.90}
+\renewcommand{\floatpagefraction}{0.80}
+\setlength{\textfloatsep}{8pt plus 2pt minus 2pt}
+\setlength{\floatsep}{6pt plus 2pt minus 2pt}
+\setlength{\intextsep}{6pt plus 2pt minus 2pt}
+\setlength{\abovecaptionskip}{3pt}
+\setlength{\belowcaptionskip}{2pt}
+\sloppy
+\raggedbottom
+
+\title{PAID-Rank: Position-Aware Adaptive Diffusion with Auxiliary Ranking Optimization for Sequential Recommendation}
+\titlerunning{PAID-Rank}
+\author{Anonymous Author(s)}
+\authorrunning{Anonymous}
+\institute{Anonymous Institution}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+Diffusion-based sequential recommendation has recently attracted attention because it can learn continuous item representations through denoising. However, existing token-level diffusion recommenders usually keep the time-step sampling distribution position-agnostic, giving early and recent interactions the same expected noise intensity. This assumption is simple but mismatched with next-item prediction, where tail interactions often provide more direct evidence of the user's current intent. We propose PAID-Rank, a lightweight training-stage refinement for token-level diffusion recommendation. PAID-Rank estimates position-wise importance with a recency-aware prior and converts the importance scores into position-dependent time-step distributions through an Adaptive Time-step Scheduler. Important positions are assigned relatively lower expected diffusion steps during training while global diffusion coverage is preserved. We further add a cosine-BPR auxiliary ranking objective on denoised representations and use PCGrad to coordinate classification, reconstruction, and ranking losses. Experiments on Baby, Beauty, Toys, and ML-100K show that PAID-Rank improves a strong ADRec-style diffusion baseline by 1.52\%--12.22\% in HR@20 and achieves consistent but more moderate NDCG@20 gains, without changing the inference procedure. Diagnostic visualizations indicate that the scheduler produces a clear head-tail time-step shift rather than collapsing to a single step.
+\keywords{sequential recommendation, diffusion model, position-aware diffusion, adaptive time-step scheduling, ranking optimization}
+\end{abstract}
+
+\section{Introduction}
+\label{sec:introduction}
+
+Sequential recommendation (SR) aims to predict a user's next interaction according to chronologically ordered historical behaviors. Because user intent is dynamic and often changes with recent actions, SR has become a central task in modern recommender systems. Early Markov-chain models and neural sequence encoders capture short-term transition patterns from different perspectives~\cite{rendle2010fpmc,hidasi2016gru4rec,tang2018caser,kang2018sasrec}, while graph-, time-, and self-supervised variants further enrich sequence representation learning~\cite{wu2019srgnn,li2020tisasrec,zhou2020s3rec}. Nevertheless, most discriminative models represent the target item as a deterministic point in the embedding space, which may be insufficient for modeling uncertainty in sparse, noisy, or short user histories.
+
+Diffusion models provide a generative alternative for recommendation by learning to reconstruct clean item representations from noisy latent states. DiffuRec introduces denoising-based item representation generation, and subsequent diffusion recommenders improve the conditioning strategy, diffusion state space, or semantic guidance. Among them, ADRec is particularly relevant to this work: it applies token-level independent diffusion to the shifted target sequence during training, couples denoising with autoregressive sequence modeling, and uses a multi-stage training recipe to mitigate embedding collapse. This design makes token-level diffusion more efficient and more compatible with sequential recommendation than earlier sequence-level diffusion designs.
+
+However, the training-time noise allocation of token-level diffusion is still not sufficiently recommendation-aware. In an ADRec-style independent diffusion process, different valid target positions can sample different diffusion time steps, but the sampling distribution itself is position-agnostic. As a result, the first valid token and the most recent token share the same expected noise level before sampling. This assumption is simple and robust, but it overlooks the temporal asymmetry of SR: tail interactions often contain stronger short-term intent signals, and excessive corruption of these positions may weaken the supervision most relevant to next-item prediction. The problem becomes more evident on sparse datasets where a small number of recent actions dominate the prediction signal.
+
+This paper asks whether token-level diffusion can be improved by reallocating training-time noise intensity according to positional importance. We propose PAID-Rank, a Position-Aware Adaptive Diffusion framework with an auxiliary ranking objective. PAID-Rank does not change the diffusion backbone or add a new inference branch. Instead, it modifies the training-time time-step sampler. A Position-Aware Importance Estimator (PAIE) assigns each valid position a normalized importance score, and an Adaptive Time-step Scheduler (ATS) converts the score into a Gaussian-shaped discrete time-step distribution. In the main configuration, PAIE uses a simple recency-aware position prior. This choice keeps the scheduler lightweight and makes the proposed modification easy to plug into an existing token-level diffusion recommender. Learned and hybrid importance estimators are supported by the implementation, but they are treated as optional extensions rather than the source of the reported main results.
+
+In addition to position-aware time-step allocation, PAID-Rank introduces a lightweight auxiliary ranking loss. Since final recommendation quality is evaluated by ranking metrics such as HR@K and NDCG@K, only minimizing reconstruction error in the continuous embedding space may not be sufficient. We therefore apply a cosine-BPR-style loss to denoised token representations. To reduce destructive interference among cross-entropy, diffusion reconstruction, and ranking losses, we adopt PCGrad for multi-objective gradient coordination.
+
+The main contributions of this work are summarized as follows:
+\begin{itemize}
+    \item We analyze the position-agnostic time-step allocation issue in token-level diffusion-based sequential recommendation and study how training-time noise strength can be adjusted by positional importance.
+    \item We propose a position-prior PAIE and a Gaussian Softmax ATS, which turn token-level independent diffusion into a position-aware training mechanism without changing the inference procedure.
+    \item We add a cosine-BPR auxiliary ranking objective on denoised representations and use PCGrad to reduce gradient interference among heterogeneous training losses.
+    \item Experiments, ablations, and scheduler visualizations on four public datasets show that PAID-Rank improves a strong ADRec-style baseline, especially on HR@20, while maintaining the same online denoising process.
+\end{itemize}
+
+\section{Related Work}
+\label{sec:related_work}
+
+\subsection{Discriminative Sequential Recommendation}
+Discriminative sequential recommenders learn a direct mapping from a user's behavior sequence to candidate-item scores. FPMC~\cite{rendle2010fpmc} combines matrix factorization with first-order Markov chains, and GRU4Rec~\cite{hidasi2016gru4rec} models short-term session dynamics with recurrent neural networks. Caser~\cite{tang2018caser} uses convolutional filters to capture local sequential patterns, while SR-GNN~\cite{wu2019srgnn} represents session transitions as graph-structured signals. SASRec~\cite{kang2018sasrec} introduces unidirectional self-attention for autoregressive next-item prediction, TiSASRec~\cite{li2020tisasrec} further models time intervals, and BERT4Rec~\cite{sun2019bert4rec} adopts bidirectional masked item prediction. Recent self-supervised and contrastive variants, such as S$^3$-Rec~\cite{zhou2020s3rec} and DuoRec~\cite{qiu2022duorec}, improve representation learning under sparse feedback. Recent analyses and variants, such as SASRec+~\cite{klenitskiy2023sasrecplus}, further refine the training objectives and implementation details of Transformer-based recommenders. These methods are efficient and strong ranking baselines, but they are primarily discriminative and do not explicitly model the uncertainty of target item representations.
+
+\subsection{Generative and Diffusion-based Recommendation}
+Generative recommendation methods model user preference distributions in latent spaces. VAE-CF~\cite{liang2018vae} and SVAE~\cite{sachdeva2019svae} are representative variational approaches. Diffusion models~\cite{ho2020ddpm,song2021score} further provide a progressive noising and denoising paradigm and have been adapted to recommendation. DiffRec~\cite{wang2023diffrec} applies diffusion to general recommendation by modeling noisy user-item interaction generation. DiffuRec~\cite{li2023diffurec} uses diffusion to reconstruct the target item representation conditioned on the historical sequence. DiffuASR~\cite{liu2023diffuasr} incorporates diffusion into augmentation-oriented sequential recommendation. DDSR~\cite{xie2024ddsr} studies discrete-state diffusion for sequence modeling. DiQDiff~\cite{diqdiff2025} strengthens diffusion guidance through semantic vector quantization and contrastive discrepancy maximization. ADRec~\cite{chen2025adrec}, a recent arXiv preprint, introduces token-level independent diffusion over the shifted target sequence and is the closest baseline to our method.
+
+Despite these advances, existing diffusion-based SR methods usually use global or position-agnostic time-step schedules. They therefore do not explicitly distinguish between early and recent positions when deciding the expected noise intensity. Moreover, many diffusion recommenders are mainly optimized by reconstruction-oriented losses, whereas the final evaluation focuses on ranking quality. PAID-Rank keeps the token-level independent diffusion formulation of ADRec, but modifies its training-time sampler by making the time-step distribution position-aware and adds a training-only auxiliary ranking objective.
+
+\begin{table}[tbp]
+    \centering
+    \caption{Comparison of representative diffusion-based sequential recommendation methods. ``Gran.'' denotes diffusion granularity. ``Sched.'' denotes the time-step schedule. ``Rank'' indicates whether an explicit auxiliary ranking constraint is used. ``Pos-aware'' indicates whether the time-step schedule depends on sequence position.}
+    \label{tab:method_comparison}
+    \scriptsize
+    \setlength{\tabcolsep}{3.2pt}
+    \renewcommand{\arraystretch}{1.08}
+    \resizebox{\textwidth}{!}{%
+    \begin{tabular}{lccccc}
+        \toprule
+        Method & Gran. & Sched. & Main objective & Rank & Pos-aware \\
+        \midrule
+        DiffuRec~\cite{li2023diffurec} & Target/sequence-level diffusion & Global target schedule & Reconstruction / CE & No & No \\
+        DiffuASR~\cite{liu2023diffuasr} & Sequence/representation-level diffusion & Global shared schedule & CE with augmentation & No & No \\
+        DDSR~\cite{xie2024ddsr} & Discrete-state diffusion & Global shared schedule & Discrete denoising / CE & No & No \\
+        ADRec~\cite{chen2025adrec} & Token-level independent diffusion & Independent but position-agnostic & CE + MSE & No & No \\
+        \midrule
+        \textbf{PAID-Rank} & Token-level independent diffusion & \textbf{Position-aware adaptive schedule} & CE + regularized MSE + ranking & \textbf{Yes} & \textbf{Yes} \\
+        \bottomrule
+    \end{tabular}}
+\end{table}
+
+\section{Method}
+\label{sec:method}
+
+PAID-Rank is built on an ADRec-style token-level diffusion backbone. Figure~\ref{fig:paid_rank_pipeline} illustrates the training and inference pipeline, and Figure~\ref{fig:paid_rank_arch} gives the module-level data flow. During training, the shifted target sequence is embedded, noised with position-specific time steps, and reconstructed by a conditional denoising network. During inference, PAID-Rank follows the original iterative denoising process and predicts the final item representation at the last position. The proposed PAIE, ATS, ranking loss, and PCGrad coordination are training-stage components.
+
+\begin{figure}[tbp]
+    \centering
+    \safeincludegraphics{0.92\textwidth}{paid_rank_training_pipeline.png}{0.30\textheight}
+    \caption{Training and inference pipeline of PAID-Rank. PAIE, ATS, the ranking branch, and PCGrad are used only during joint training; inference keeps the original denoising-based prediction procedure.}
+    \label{fig:paid_rank_pipeline}
+\end{figure}
+
+\begin{figure}[tbp]
+    \centering
+    \safeincludegraphics{1.10\textwidth}{paid_rank_architecture.png}{0.30\textheight}
+    \caption{Module-level architecture of PAID-Rank. PAIE estimates normalized position importance, ATS samples position-specific diffusion steps, and the denoising network is trained with CE, reconstruction, and auxiliary cosine-BPR losses coordinated by PCGrad.}
+    \label{fig:paid_rank_arch}
+\end{figure}
+
+\subsection{Problem Formulation}
+\label{subsec:problem}
+
+Let a user's chronological interaction history be $\mathcal{S}=\{s_1,s_2,\ldots,s_L\}$, where $L$ is the maximum truncated sequence length. The item vocabulary is denoted as $\mathcal{V}$, and the item embedding matrix is $\mathbf{V}\in\mathbb{R}^{|\mathcal{V}|\times H}$, where $H$ is the hidden dimension. Given the history, the goal is to produce a Top-$K$ recommendation list containing the next interacted item.
+
+Following the shifted-target training paradigm, the model receives a historical sequence and reconstructs target item embeddings at valid positions. Let $\mathbf{e}^{(0)}_{1:L}\in\mathbb{R}^{L\times H}$ denote the clean target embedding sequence, and let $m_i\in\{0,1\}$ be the valid-position mask. A Transformer encoder produces contextual sequence states $\mathbf{c}_{1:L}\in\mathbb{R}^{L\times H}$. After denoising, the predicted clean representation $\hat{\mathbf{e}}^{(0)}_i$ is matched with item embeddings by inner product:
+\begin{equation}
+    z_{i,j}=\langle \hat{\mathbf{e}}^{(0)}_i,\mathbf{v}_j\rangle, \quad j\in\{1,\ldots,|\mathcal{V}|\}.
+\end{equation}
+The cross-entropy loss is computed over all valid target positions during training, and the final recommendation score at inference is obtained from the last denoised position.
+
+\subsection{Position-Aware Importance Estimation}
+\label{subsec:paie}
+
+The key motivation of PAIE is to assign different expected diffusion strengths to different target positions. In the main setting used for the reported experiments, PAIE uses a position-prior estimator. This choice is deliberately simple: it directly reflects the recency bias of sequential recommendation, introduces negligible parameters, and matches the actual implementation used to produce the main results.
+
+For a sequence of length $L$, we define a linearly increasing position prior:
+\begin{equation}
+    r_i=0.3+0.7\cdot\frac{i-1}{L-1},\quad i=1,\ldots,L.
+    \label{eq:position_prior}
+\end{equation}
+After applying the valid-position mask, the normalized position importance is
+\begin{equation}
+    \pi_i=\frac{r_i m_i}{\sum_{j=1}^{L} r_jm_j+\epsilon},
+    \label{eq:position_importance}
+\end{equation}
+where $\epsilon$ is a small constant for numerical stability. The normalized score $\pi_i$ is not intended to be an absolute probability of relevance. Instead, it provides a within-sequence allocation signal: later valid positions receive larger relative importance and are subsequently assigned lower expected diffusion steps. Since sequences are left-padded and Eq.~\eqref{eq:position_importance} normalizes only over valid target positions, the averaged importance of tail positions can be substantially larger than $1/L$ on sparse datasets with short histories.
+
+\paragraph{Optional importance variants.}
+Besides the position-prior estimator used in the main experiments, the implementation supports learned and hybrid modes. In the learned mode, an MLP maps $\mathbf{c}_i$ to a semantic score $\ell_i=\sigma(\mathrm{MLP}(\mathbf{c}_i))$. In the hybrid mode, the position prior and the learned score can be combined with cached reconstruction-error feedback. These modes are not used to produce the main reported results, so the experimental claims are based on the simpler position-prior setting.
+
+\paragraph{Error-consistency regularization.}
+Although the default sampler is position-prior based, the diffusion loss contains an auxiliary consistency term derived from token-wise reconstruction errors. Let
+\begin{equation}
+    \mathcal{E}_i=\frac{1}{H}\left\|\hat{\mathbf{e}}^{(0)}_i-\mathbf{e}^{(0)}_i\right\|_2^2.
+\end{equation}
+We normalize the reconstruction errors within each sequence:
+\begin{equation}
+    \rho_i=\frac{\mathcal{E}_i m_i}{\sum_{j=1}^{L}\mathcal{E}_jm_j+\epsilon}.
+\end{equation}
+The error-consistency term is then
+\begin{equation}
+    \mathcal{L}_{\mathrm{imp}}=\sum_{i=1}^{L}m_i(\pi_i-\rho_i)^2.
+    \label{eq:importance_regularization}
+\end{equation}
+This term is used as a lightweight regularizer on the diffusion reconstruction branch rather than as an additional sampler. When the learned or hybrid estimator is enabled, an optional entropy-style anti-collapse regularizer can be used; it is not treated as part of the main position-prior configuration.
+
+\subsection{Adaptive Time-step Scheduler}
+\label{subsec:ats}
+
+Given the normalized importance score $\pi_i$, ATS maps it to an expected diffusion step:
+\begin{equation}
+    \bar{t}_i=(1-\pi_i)(T-1),
+    \label{eq:expected_timestep}
+\end{equation}
+where $T$ is the number of diffusion steps. A larger $\pi_i$ leads to a smaller expected step and thus a relatively weaker noise level. Since $\pi_i$ is normalized within a sequence, Eq.~\eqref{eq:expected_timestep} should be understood as a relative reallocation mechanism rather than a guarantee that all tail positions are sampled from very small steps.
+
+To avoid deterministic assignment and preserve diffusion coverage, ATS constructs a Gaussian-shaped Softmax distribution over discrete candidate steps:
+\begin{equation}
+    p(t_i=t\mid \pi_i)=
+    \frac{\exp\left(-\frac{(t-\bar{t}_i)^2}{2\tau^2}\right)}
+    {\sum_{k=0}^{T-1}\exp\left(-\frac{(k-\bar{t}_i)^2}{2\tau^2}\right)},
+    \quad t\in\{0,\ldots,T-1\},
+    \label{eq:ats_distribution}
+\end{equation}
+where $\tau$ is the scheduler temperature. Each valid token independently samples $t_i\sim p(t_i\mid\pi_i)$. The forward noising process is
+\begin{equation}
+    \mathbf{e}^{(t_i)}_i=
+    \sqrt{\bar{\alpha}_{t_i}}\mathbf{e}^{(0)}_i+
+    \sqrt{1-\bar{\alpha}_{t_i}}\bm{\epsilon}_i,
+    \quad \bm{\epsilon}_i\sim\mathcal{N}(\mathbf{0},\mathbf{I}).
+    \label{eq:forward_noising}
+\end{equation}
+Conditioned on $\mathbf{c}_{1:L}$, the noisy target states $\mathbf{e}^{(t_i)}_{1:L}$, and the sampled steps $t_{1:L}$, the denoising network predicts $\hat{\mathbf{e}}^{(0)}_{1:L}$.
+
+The reconstruction loss over valid positions is
+\begin{equation}
+    \mathcal{L}_{\mathrm{mse}}=
+    \sum_{i=1}^{L}\omega_i\left\|\hat{\mathbf{e}}^{(0)}_i-\mathbf{e}^{(0)}_i\right\|_2^2,
+    \quad
+    \omega_i=\frac{m_i}{\sum_{j=1}^{L}m_j+\epsilon}.
+    \label{eq:mse_loss}
+\end{equation}
+The diffusion objective used for joint training is
+\begin{equation}
+    \mathcal{L}^{*}_{\mathrm{diff}}=\mathcal{L}_{\mathrm{mse}}+\beta_1\mathcal{L}_{\mathrm{imp}},
+    \label{eq:regularized_diff_loss}
+\end{equation}
+where $\mathcal{L}_{\mathrm{imp}}$ is a lightweight consistency regularizer.
+
+\subsection{Auxiliary Ranking Objective and PCGrad}
+\label{subsec:rank_pcgrad}
+
+A reconstruction loss can make the predicted representation close to the target embedding, but it does not explicitly enforce that the positive item should be ranked above negative candidates. To better align the denoised representations with ranking-oriented evaluation, PAID-Rank adds a cosine-BPR-style auxiliary objective inspired by Bayesian personalized ranking~\cite{rendle2009bpr}.
+
+For each valid target position, the denoised representation $\hat{\mathbf{e}}^{(0)}_i$ is treated as the query vector. Let $\mathbf{v}_i^+$ be the embedding of the ground-truth item and $\mathbf{v}_i^-$ be the embedding of a randomly sampled negative item. The three vectors are normalized:
+\begin{equation}
+    \tilde{\mathbf{z}}_i=\frac{\hat{\mathbf{e}}^{(0)}_i}{\|\hat{\mathbf{e}}^{(0)}_i\|_2},\quad
+    \tilde{\mathbf{v}}^+_i=\frac{\mathbf{v}^+_i}{\|\mathbf{v}^+_i\|_2},\quad
+    \tilde{\mathbf{v}}^-_i=\frac{\mathbf{v}^-_i}{\|\mathbf{v}^-_i\|_2}.
+\end{equation}
+The positive and negative cosine scores are
+\begin{equation}
+    s_i^+=\langle\tilde{\mathbf{z}}_i,\tilde{\mathbf{v}}^+_i\rangle,
+    \quad
+    s_i^-=\langle\tilde{\mathbf{z}}_i,\tilde{\mathbf{v}}^-_i\rangle.
+\end{equation}
+The ranking loss is
+\begin{equation}
+    \mathcal{L}_{\mathrm{rank}}=-\frac{1}{\sum_{i=1}^{L}m_i+\epsilon}
+    \sum_{i=1}^{L}m_i\log\sigma(s_i^+-s_i^-).
+    \label{eq:rank_loss}
+\end{equation}
+In the current implementation, one negative item is sampled for each valid target position by default.
+
+The training objectives are grouped as
+\begin{equation}
+    \left[\mathcal{L}_{\mathrm{ce}},\;\lambda\mathcal{L}^{*}_{\mathrm{diff}},\;\mu\mathcal{L}_{\mathrm{rank}}\right],
+    \label{eq:pcgrad_objectives}
+\end{equation}
+where $\mathcal{L}_{\mathrm{ce}}$ is the item-classification loss, $\lambda$ controls the diffusion branch, and $\mu$ controls the ranking branch. Instead of simply summing all objectives before back-propagation, PAID-Rank feeds the objective list into PCGrad~\cite{yu2020pcgrad}. If the dot product between two task gradients is negative, PCGrad removes the conflicting component by projection. This design is used as a stable optimization strategy for combining classification, reconstruction, and ranking supervision while keeping the model architecture unchanged.
+
+\section{Experiments and Analysis}
+\label{sec:experiments}
+
+\subsection{Experimental Settings}
+\label{subsec:settings}
+
+\subsubsection{Datasets and preprocessing.}
+We evaluate PAID-Rank on three Amazon review subsets (Baby, Beauty, and Toys)~\cite{he2016amazon} and MovieLens-100K (ML-100K)~\cite{harper2015movielens}, following the commonly used Amazon review benchmark preprocessing. Users and items with fewer than five interactions are filtered out. Interactions are sorted chronologically for each user. For ML-100K, ratings no less than 4 are treated as positive feedback; for the Amazon datasets, observed purchase/review interactions are used as implicit positive feedback. Dataset statistics are shown in Table~\ref{tab:dataset_stats}.
+
+\begin{table}[tbp]
+    \centering
+    \caption{Dataset statistics after preprocessing. $|\mathcal{U}|$ and $|\mathcal{V}|$ denote the numbers of users and items. $\#\mathrm{Int.}$ denotes the number of interactions. $\mathrm{Avg.|S|}$ denotes the average sequence length. The maximum sequence length is set to $L_{\max}=50$.}
+    \label{tab:dataset_stats}
+    \setlength{\tabcolsep}{4.5pt}
+    \begin{tabular}{lrrrr}
+        \toprule
+        Dataset & $|\mathcal{U}|$ & $|\mathcal{V}|$ & $\#\mathrm{Int.}$ & $\mathrm{Avg.|S|}$ \\
+        \midrule
+        Baby    & 11{,}761 & 4{,}731 & 92{,}613  & 7.89  \\
+        Beauty  & 10{,}553 & 6{,}086 & 94{,}119  & 8.92  \\
+        Toys    & 11{,}268 & 7{,}309 & 95{,}468  & 8.47  \\
+        ML-100K & 938      & 1{,}008 & 54{,}457  & 58.01 \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+\subsubsection{Baselines.}
+We compare PAID-Rank with representative discriminative and generative sequential recommenders, including GRU4Rec~\cite{hidasi2016gru4rec}, SASRec+~\cite{kang2018sasrec,klenitskiy2023sasrecplus}, BERT4Rec~\cite{sun2019bert4rec}, SVAE~\cite{sachdeva2019svae}, DiffuRec~\cite{li2023diffurec}, and ADRec~\cite{chen2025adrec}. SASRec+ denotes a strong SASRec variant following the training-objective analysis in~\cite{klenitskiy2023sasrecplus}. ADRec is a recent arXiv token-level diffusion baseline and the most directly relevant comparison in our study. For a fair comparison, all models follow the same chronological split and evaluation protocol, and hyperparameters are selected on the validation set.
+
+\subsubsection{Evaluation protocol and implementation details.}
+For each user, the interactions are split chronologically. The training prefix is used for parameter learning, the validation item is used for early stopping and hyperparameter selection, and the test item is used for final evaluation. During testing, the validation item is appended to the historical sequence following the standard leave-one-out protocol. We rank all candidate items and report HR@20 and NDCG@20. Unless otherwise specified, the hidden size is $H=128$, Adam is used as the optimizer, validation is conducted every five epochs, and early stopping patience is set to 4. We report the test performance of the validation-selected checkpoint under the same evaluation protocol for all compared models.
+
+\begin{table}[tbp]
+    \centering
+    \caption{Key hyperparameter settings. The implementation name is mapped to the notation used in this paper.}
+    \label{tab:hyperparams}
+    \scriptsize
+    \setlength{\tabcolsep}{3pt}
+    \renewcommand{\arraystretch}{1.08}
+    \begin{tabular}{p{0.20\columnwidth}p{0.38\columnwidth}p{0.30\columnwidth}}
+        \toprule
+        Component & Hyperparameter & Value / Mapping \\
+        \midrule
+        Backbone & embedding dim / hidden dim & $H=128$ \\
+        Data & \texttt{max\_len} & 50 \\
+        Training & \texttt{batch\_size} & 512 \\
+        Training & \texttt{epochs} & 500 with early stopping \\
+        Early stopping & \texttt{eval\_interval} / \texttt{patience} & 5 / 4 \\
+        Optimizer & lr / weight decay & 0.001 / $1\times 10^{-5}$ \\
+        Diffusion & \texttt{diffusion\_steps} $\rightarrow T$ & 32 \\
+        Noise schedule & \texttt{noise\_schedule} & \texttt{trunc\_lin} \\
+        Noise schedule & \texttt{beta\_a}, \texttt{beta\_b} & 0.3, 10 \\
+        PAIE & \texttt{use\_position\_aware} & true \\
+        PAIE & \texttt{position\_importance\_mode} & \texttt{position\_based} \\
+        ATS & \texttt{scheduler\_temperature} $\rightarrow \tau$ & 2.8 \\
+        Rank loss & \texttt{pref\_loss\_scale} $\rightarrow \mu$ & 1.0; Baby: 1.7 \\
+        Loss weight & \texttt{loss\_scale} $\rightarrow \lambda$ & 1.0 \\
+        Multi-objective & \texttt{pcgrad} & true \\
+        Others & independent / geodesic / cfg scale & true / false / 1 \\
+        \bottomrule
+    \end{tabular}
+    \normalsize
+\end{table}
+
+\subsection{Overall Recommendation Performance}
+\label{subsec:overall}
+
+Table~\ref{tab:main_results} reports the overall recommendation performance. PAID-Rank achieves the best HR@20 and NDCG@20 among the compared models on the four datasets, with more pronounced improvements on HR@20. Relative to ADRec, the HR@20 gains are +8.67\% on Baby, +1.52\% on Beauty, +12.22\% on Toys, and +9.56\% on ML-100K. The gains are especially clear on Baby, Toys, and ML-100K, suggesting that position-aware time-step reallocation is more helpful when recent interactions provide strong next-item evidence.
+
+The NDCG@20 improvements are positive but more moderate, especially on Beauty, Toys, and ML-100K. This indicates that the current version of PAID-Rank improves target-item recovery more strongly than fine-grained ranking position. The cosine-BPR branch provides additional positive-negative discrimination for denoised representations, but stronger multi-negative or listwise objectives may be required for larger NDCG gains. We therefore avoid overstating the ranking effect and interpret PAID-Rank as a lightweight training-stage refinement with clear recall-oriented gains and stable but moderate ranking-position improvements.
+
+\begin{table}[tbp]
+    \centering
+    \caption{Overall results (\%) on four sequential recommendation datasets. Results are reported under the same chronological leave-one-out evaluation protocol. The best results are in bold and the second-best results are underlined. ``Improv.'' denotes the relative improvement of PAID-Rank over ADRec.}
+    \label{tab:main_results}
+    \scriptsize
+    \setlength{\tabcolsep}{4.2pt}
+    \renewcommand{\arraystretch}{1.08}
+    \resizebox{\textwidth}{!}{%
+    \begin{tabular}{llrrrrrrrr}
+        \toprule
+        Dataset & Metric & GRU4Rec & BERT4Rec & SASRec+ & SVAE & DiffuRec & ADRec & PAID-Rank & Improv. \\
+        \midrule
+        \multirow{2}{*}{Baby}
+            & HR@20   & 5.4576 & 4.0009 & 5.5268 & 2.7439 & 5.3820 & \underline{7.1524} & \textbf{7.7728} & +8.67 \\
+            & NDCG@20 & 2.2568 & 1.6198 & 2.5197 & 1.0086 & 2.5649 & \underline{3.1455} & \textbf{3.3018} & +4.97 \\
+        \midrule
+        \multirow{2}{*}{Beauty}
+            & HR@20   & 12.6462 & 9.8723 & 15.2038 & 3.9204 & 13.9102 & \underline{16.8246} & \textbf{17.0800} & +1.52 \\
+            & NDCG@20 & 5.6347 & 3.9216 & 7.6509 & 1.4985 & 7.3326 & \underline{8.3214} & \textbf{8.3581} & +0.44 \\
+        \midrule
+        \multirow{2}{*}{Toys}
+            & HR@20   & 5.6216 & 4.9423 & 10.7082 & 1.5031 & 9.8590 & \underline{12.0924} & \textbf{13.5700} & +12.22 \\
+            & NDCG@20 & 2.5605 & 1.9627 & 6.0517 & 0.6266 & 5.8508 & \underline{6.7982} & \textbf{6.8239} & +0.38 \\
+        \midrule
+        \multirow{2}{*}{ML-100K}
+            & HR@20   & 18.6858 & 10.1833 & 18.4538 & 8.1504 & 16.0688 & \underline{22.0699} & \textbf{24.1798} & +9.56 \\
+            & NDCG@20 & 7.1357 & 3.7504 & 7.1034 & 3.2905 & 6.5550 & \underline{9.0028} & \textbf{9.0798} & +0.86 \\
+        \bottomrule
+    \end{tabular}}
+\end{table}
+
+\subsection{Ablation Study}
+\label{subsec:ablation}
+
+Table~\ref{tab:ablation} evaluates the contribution of the proposed components. \textbf{Base} denotes the ADRec-style token-level diffusion backbone. \textbf{+PA} adds position-aware time-step allocation. \textbf{+Rank} adds the cosine-BPR ranking objective, and \textbf{Full} combines PA, Rank, and PCGrad-based multi-objective optimization.
+
+The \textbf{+PA} variant improves over Base on all datasets, confirming that reallocating diffusion time steps according to position importance is effective even without the ranking branch. This supports the central hypothesis that a position-agnostic sampler is suboptimal for SR. The \textbf{+Rank} variant also improves over Base, showing that denoised representations benefit from explicit positive-negative discrimination. The strongest results are achieved by the full model, suggesting that position-aware diffusion and ranking-oriented supervision are complementary when they are jointly optimized.
+
+Nevertheless, the ablation also shows that the two modules contribute differently across metrics. PA tends to improve HR@20 more directly, while Rank sometimes provides stronger NDCG gains, as on Baby and ML-100K. Their combination is therefore complementary, but the improvement is not uniformly large on every metric. This pattern supports the complementarity between position-aware diffusion and ranking-oriented representation learning.
+
+\begin{table}[!htbp]
+    \centering
+    \caption{Ablation results of PAID-Rank (HR@20 / NDCG@20, \%).}
+    \label{tab:ablation}
+    \scriptsize
+    \setlength{\tabcolsep}{6pt}
+    \renewcommand{\arraystretch}{1.08}
+    \resizebox{\textwidth}{!}{%
+    \begin{tabular}{lrrrrrrrr}
+        \toprule
+        \multirow{2}{*}{Variant} & \multicolumn{2}{c}{Baby} & \multicolumn{2}{c}{Beauty} & \multicolumn{2}{c}{Toys} & \multicolumn{2}{c}{ML-100K} \\
+        \cmidrule(lr){2-3}\cmidrule(lr){4-5}\cmidrule(lr){6-7}\cmidrule(lr){8-9}
+        & HR@20 & NDCG@20 & HR@20 & NDCG@20 & HR@20 & NDCG@20 & HR@20 & NDCG@20 \\
+        \midrule
+        Base (ADRec-style) & 7.1524 & 3.1455 & 16.8246 & 8.3214 & 12.0924 & 6.7982 & 22.0699 & 9.0028 \\
+        +PA                & 7.4503 & 3.2010 & 17.0540 & 8.3403 & 12.4066 & 6.8137 & 22.7140 & 9.0203 \\
+        +Rank              & 7.4905 & 3.2550 & 16.8577 & 8.3341 & 12.7293 & 6.8024 & 24.0033 & 9.0502 \\
+        Full (PAID-Rank)   & 7.7728 & 3.3018 & 17.0800 & 8.3581 & 13.5700 & 6.8239 & 24.1798 & 9.0798 \\
+        \bottomrule
+    \end{tabular}}
+\end{table}
+
+\subsection{Efficiency and Complexity Analysis}
+\label{subsec:complexity}
+
+The additional computation introduced by PAID-Rank mainly comes from position-wise importance normalization, Gaussian Softmax time-step distribution construction, categorical sampling, and PCGrad-based gradient projection. PAIE and ATS are linear in sequence length, i.e., $\mathcal{O}(L)$, and are lightweight compared with the Transformer encoder and denoising network. The dominant training complexity therefore remains $\mathcal{O}(LH^2+L^2H)$ for the Transformer-style sequence encoder and denoising backbone. Inference is unchanged because PAIE, ATS, the ranking branch, and PCGrad are disabled during prediction; PAID-Rank uses the same denoising-based last-position prediction process as the ADRec-style backbone.
+
+
+\subsection{Discussion on Hyperparameters and Scope}
+\label{subsec:sensitivity}
+
+PAID-Rank introduces two main additional hyperparameters: the scheduler temperature $\tau$ and the ranking-loss weight $\mu$. In practice, $\tau$ controls how concentrated the Gaussian-Softmax time-step distribution is around the position-dependent expected step. An excessively small value may over-concentrate sampling around a narrow range of steps, whereas an excessively large value makes the sampler close to position-agnostic. The ranking weight $\mu$ should also be treated as an auxiliary coefficient rather than a dominant training objective; a large value may overemphasize pairwise separation and weaken reconstruction. In the reported experiments, these hyperparameters are selected on the validation set and then fixed for testing. A more exhaustive sensitivity study with additional random seeds is left for future work.
+
+\subsection{Scheduler Visualization}
+\label{subsec:diagnosis_plots}
+
+Figure~\ref{fig:diag_timestep} visualizes the scheduler behavior on the Toys dataset. The top panel shows that average position importance increases toward the tail of the left-padded sequence, while the corresponding expected time step decreases. Because importance is normalized only over valid positions in each sequence, short histories can assign relatively large mass to their final valid positions; the plotted curve is therefore an average over variable-length masked sequences rather than a fixed-length unmasked prior. The bottom-right panel further shows that tail positions are shifted relatively leftward compared with head positions, meaning that they receive lower noise than earlier positions in expectation. The bottom-left panel shows that the global distribution still covers a broad range of time steps and does not collapse to a single value. These observations support the design goal of protecting important recent positions while retaining sufficient diffusion diversity.
+
+\begin{figure}[!htbp]
+    \centering
+    \safeincludegraphics{0.84\textwidth}{toys_diagnostic_compact.png}{0.25\textheight}
+    \caption{Diagnostic visualization of the adaptive time-step scheduler on the Toys dataset. The top panels show position-wise importance and expected time-step allocation averaged over variable-length left-padded sequences after valid-position masking, and the bottom panels show the global and head-vs-tail time-step distributions. Tail positions exhibit a relative left shift compared with head positions, while the global distribution maintains broad diffusion coverage.}
+    \label{fig:diag_timestep}
+\end{figure}
+\FloatBarrier
+
+\section{Conclusion}
+\label{sec:conclusion}
+
+This paper presents PAID-Rank, a position-aware training-stage refinement for token-level diffusion-based sequential recommendation. PAID-Rank replaces the position-agnostic time-step sampling distribution with a recency-aware adaptive scheduler, so that different target positions receive different expected noise strengths during training. It also adds a lightweight cosine-BPR objective on denoised representations and uses PCGrad to coordinate multiple training losses. Experiments on four benchmark datasets show that the method improves an ADRec-style diffusion baseline, with clearer gains on HR@20 and moderate but stable gains on NDCG@20. Ablation and scheduler visualization suggest that the scheduler, ranking objective, and gradient coordination are complementary. Since the proposed components are used only during training, the inference procedure remains unchanged. Future work will explore stronger multi-negative ranking losses, broader sensitivity analysis, and learned importance estimators for larger NDCG improvements.
+
+
+\begin{thebibliography}{99}
+
+\bibitem{rendle2010fpmc}
+Rendle, S., Freudenthaler, C., Schmidt-Thieme, L.: Factorizing personalized Markov chains for next-basket recommendation. In: Proceedings of the 19th International Conference on World Wide Web (WWW), pp. 811--820 (2010)
+
+\bibitem{hidasi2016gru4rec}
+Hidasi, B., Karatzoglou, A., Baltrunas, L., Tikk, D.: Session-based recommendations with recurrent neural networks. arXiv preprint arXiv:1511.06939 (2015)
+
+\bibitem{tang2018caser}
+Tang, J., Wang, K.: Personalized top-N sequential recommendation via convolutional sequence embedding. In: Proceedings of the ACM International Conference on Web Search and Data Mining (WSDM), pp. 565--573 (2018)
+
+\bibitem{kang2018sasrec}
+Kang, W.C., McAuley, J.: Self-attentive sequential recommendation. In: Proceedings of the IEEE International Conference on Data Mining (ICDM), pp. 197--206 (2018)
+
+\bibitem{wu2019srgnn}
+Wu, S., Tang, Y., Zhu, Y., Wang, L., Xie, X., Tan, T.: Session-based recommendation with graph neural networks. In: Proceedings of the AAAI Conference on Artificial Intelligence, vol. 33, pp. 346--353 (2019)
+
+\bibitem{li2020tisasrec}
+Li, J., Wang, Y., McAuley, J.: Time interval aware self-attention for sequential recommendation. In: Proceedings of the ACM International Conference on Web Search and Data Mining (WSDM), pp. 322--330 (2020)
+
+\bibitem{sun2019bert4rec}
+Sun, F., Liu, J., Wu, J., Pei, C., Lin, X., Ou, W., Jiang, P.: BERT4Rec: Sequential recommendation with bidirectional encoder representations from transformer. In: Proceedings of the ACM International Conference on Information and Knowledge Management (CIKM), pp. 1441--1450 (2019)
+
+\bibitem{zhou2020s3rec}
+Zhou, K., Wang, H., Zhao, W.X., Zhu, Y., Wang, S., Zhang, F., Wang, Z., Wen, J.R.: S$^3$-Rec: Self-supervised learning for sequential recommendation with mutual information maximization. In: Proceedings of the ACM International Conference on Information and Knowledge Management (CIKM), pp. 1893--1902 (2020)
+
+\bibitem{qiu2022duorec}
+Qiu, R., Huang, Z., Yin, H., Wang, Z.: Contrastive learning for representation degeneration problem in sequential recommendation. In: Proceedings of the ACM International Conference on Web Search and Data Mining (WSDM), pp. 813--823 (2022)
+
+\bibitem{klenitskiy2023sasrecplus}
+Klenitskiy, A., Vasilev, A.: Turning Dross Into Gold Loss: Is BERT4Rec Really Better than SASRec? In: Proceedings of the ACM Conference on Recommender Systems (RecSys), pp. 1120--1125 (2023)
+
+\bibitem{liang2018vae}
+Liang, D., Krishnan, R.G., Hoffman, M.D., Jebara, T.: Variational autoencoders for collaborative filtering. In: Proceedings of the World Wide Web Conference (WWW), pp. 689--698 (2018)
+
+\bibitem{sachdeva2019svae}
+Sachdeva, N., Manco, G., Ritacco, E., Pudi, V.: Sequential variational autoencoders for collaborative filtering. In: Proceedings of the ACM International Conference on Web Search and Data Mining (WSDM), pp. 600--608 (2019)
+
+\bibitem{ho2020ddpm}
+Ho, J., Jain, A., Abbeel, P.: Denoising diffusion probabilistic models. In: Advances in Neural Information Processing Systems (NeurIPS) (2020)
+
+\bibitem{song2021score}
+Song, Y., Sohl-Dickstein, J., Kingma, D.P., Kumar, A., Ermon, S., Poole, B.: Score-based generative modeling through stochastic differential equations. In: International Conference on Learning Representations (ICLR) (2021)
+
+\bibitem{wang2023diffrec}
+Wang, W., Xu, Y., Feng, F., Lin, X., He, X., Chua, T.S.: Diffusion recommender model. In: Proceedings of the ACM SIGIR Conference on Research and Development in Information Retrieval (SIGIR), pp. 832--841 (2023)
+
+\bibitem{li2023diffurec}
+Li, Z., Sun, A., Li, C.: DiffuRec: A diffusion model for sequential recommendation. ACM Transactions on Information Systems 42(3), 66:1--66:28 (2024). https://doi.org/10.1145/3631116
+
+\bibitem{liu2023diffuasr}
+Liu, Q., Yan, F., Zhao, X., Du, Z., Guo, H., Tang, R., Tian, F.: Diffusion augmentation for sequential recommendation. In: Proceedings of the ACM International Conference on Information and Knowledge Management (CIKM), pp. 1576--1586 (2023)
+
+\bibitem{xie2024ddsr}
+Xie, W., Wang, H., Zhang, L., Zhou, R., Lian, D., Chen, E.: Breaking determinism: Fuzzy modeling of sequential recommendation using discrete state space diffusion model. In: Advances in Neural Information Processing Systems 37 (NeurIPS) (2024)
+
+\bibitem{diqdiff2025}
+Mao, W., Liu, S., Liu, H., Liu, H., Li, X., Hu, L.: Distinguished quantized guidance for diffusion-based sequence recommendation. In: Proceedings of the ACM Web Conference (WWW), Oral Presentation (2025)
+
+\bibitem{chen2025adrec}
+Chen, J., Xu, Y., Jiang, Y.: Unlocking the power of diffusion models in sequential recommendation: A simple and effective approach. arXiv preprint arXiv:2505.19544 (2025)
+
+\bibitem{rendle2009bpr}
+Rendle, S., Freudenthaler, C., Gantner, Z., Schmidt-Thieme, L.: BPR: Bayesian personalized ranking from implicit feedback. In: Proceedings of the Conference on Uncertainty in Artificial Intelligence (UAI), pp. 452--461 (2009)
+
+\bibitem{yu2020pcgrad}
+Yu, T., Kumar, S., Gupta, A., Levine, S., Hausman, K., Finn, C.: Gradient surgery for multi-task learning. In: Advances in Neural Information Processing Systems 33 (NeurIPS) (2020)
+
+\bibitem{he2016amazon}
+He, R., McAuley, J.: Ups and downs: Modeling the visual evolution of fashion trends with one-class collaborative filtering. In: Proceedings of the 25th International Conference on World Wide Web (WWW), pp. 507--517 (2016)
+
+\bibitem{harper2015movielens}
+Harper, F.M., Konstan, J.A.: The MovieLens datasets: History and context. ACM Transactions on Interactive Intelligent Systems 5(4), 19:1--19:19 (2015)
+
+\end{thebibliography}
+
+\end{document}
